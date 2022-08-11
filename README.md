@@ -3,7 +3,7 @@
 This tiny program generates somewhat memorable passwords in Finnish.
 Each generated password also includes a randomly placed 3-character Base32 section to add entropy.
 
-It accepts no parameters.
+It accepts no command line arguments.
 
 Example password: `molekyylibiologia-madonnamainen-QR5-kirkonrotta`
 
@@ -11,7 +11,7 @@ The wordlist contains about 91690 words and is a subset of the wordlist found at
 
 ## Installation
 
-Pre-built releases exist for Linux, macOS and Windows on amd64/amd64 platforms. See the releases for details.
+Pre-built releases exist for Linux, macOS and Windows on amd64/arm64 platforms. See the releases for details.
 
 ## Development
 Clone the repo and run `go build`.
