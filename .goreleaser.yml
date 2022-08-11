@@ -1,0 +1,83 @@
+---
+builds:
+  - id: finpass
+    binary: finpass
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: linux
+        goarch: arm64
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+checksum:
+  name_template: "{{ .ProjectName }}_checksums.txt"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - Merge pull request
+      - Merge branch
+      - go mod tidy
+archives:
+  - id: tgz
+    format: tar.gz
+    replacements:
+      darwin: macOS
+    format_overrides:
+      - goos: windows
+        format: zip
+
+signs:
+  - signature: "${artifact}.minisig"
+    cmd: "sh"
+    args:
+      - "-c"
+      - "minisign -s /mnt/st/finpass.sec -Sm ${artifact} < /mnt/st/finpass.pass"
+    artifacts: all
+
+nfpms:
+  - vendor: Mirko Grönroos
+    homepage: https://github.com/hermo/finpass
+    maintainer: Mirko Grönroos <mirko@mirko.fi>
+    description: finpass generates passwords using Finnish language words
+    license: MIT
+    formats:
+      - deb
+      - rpm
+brews:
+  -
+    tap:
+      owner: hermo
+      name: homebrew-finpass
+
+    download_strategy: CurlDownloadStrategy
+
+    commit_author:
+      name: goreleaserbot
+      email: mirko+goreleaser@mirko.fi
+
+    # The project name and current git tag are used in the format string.
+    #commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+
+    folder: Formula
+    homepage: "https://github.com/hermo/finpass"
+    description: "finpass generates passwords using Finnish language words"
+    license: "MIT"
+
+    # Setting this will prevent goreleaser to actually try to commit the updated
+    # formula - instead, the formula file will be stored on the dist folder only,
+    # leaving the responsibility of publishing it to the user.
+    # If set to auto, the release will not be uploaded to the homebrew tap
+    # in case there is an indicator for prerelease in the tag e.g. v0.0.0-rc1
+    # Default is false.
+    skip_upload: auto
