@@ -10,4 +10,8 @@ Example password: `molekyylibiologia-madonnamainen-QR5-kirkonrotta`
 The wordlist contains about 91690 words and is a subset of the wordlist found at https://github.com/hugovk/everyfinnishword
 
 ## Installation
+
+Pre-built releases exist for Linux, macOS and Windows on amd64/amd64 platforms. See the releases for details.
+
+## Development
 Clone the repo and run `go build`.
