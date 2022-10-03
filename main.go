@@ -3,12 +3,36 @@ package main
 import (
 	"crypto/rand"
 	"encoding/base32"
+	"flag"
 	"fmt"
 	"math/big"
+	"os"
 )
 
+type Settings struct {
+	MaxLength uint
+}
+
+func ParseFlags() Settings {
+	var settings Settings
+	flag.UintVar(&settings.MaxLength, "m", 0, "maxlen")
+	flag.Parse()
+	return settings
+}
+
 func main() {
-	parts := []string{randomWord(), randomWord(), randomWord(), randomAlphaNumericString()}
+	settings := ParseFlags()
+
+	if settings.MaxLength > 0 && settings.MaxLength < 3 {
+		fmt.Println("maxlen must be at least 3")
+		os.Exit(1)
+	}
+
+	wordFn := func() string {
+		return randomWord(settings.MaxLength)
+	}
+
+	parts := []string{wordFn(), wordFn(), wordFn(), randomAlphaNumericString()}
 	x := randomInt(4)
 	parts[x], parts[3] = parts[3], parts[x]
 	passphrase := fmt.Sprintf("%s-%s-%s-%s", parts[0], parts[1], parts[2], parts[3])
@@ -23,9 +47,14 @@ func randomInt(max int) int64 {
 	return n.Int64()
 }
 
-func randomWord() string {
+func randomWord(maxLength uint) string {
 	numWords := len(words)
 	word := words[randomInt(numWords)]
+	if maxLength > 0 {
+		for uint(len(word)) > maxLength {
+			word = words[randomInt(numWords)]
+		}
+	}
 	return word
 }
 
