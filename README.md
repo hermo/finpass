@@ -3,7 +3,12 @@
 This tiny program generates somewhat memorable passwords in Finnish.
 Each generated password also includes a randomly placed 3-character Base32 section to add entropy.
 
-It accepts no command line arguments.
+## Flags
+
+| Flag      | Description                           |
+|-----------|---------------------------------------|
+| -m MAXLEN | Maximum length of each word component |
+
 
 Example password: `molekyylibiologia-madonnamainen-QR5-kirkonrotta`
 
