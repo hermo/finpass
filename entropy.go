@@ -104,13 +104,13 @@ func estimateCrackTime(entropy float64) string {
 	// return the appropriate number of years, centuries, millennia, or aeons as a formatted string with 1 decimal place
 	switch {
 	case nonillionsOfYears > 1:
-		return fmt.Sprintf("%.1f nonillions of years", nonillionsOfYears)
+		return fmt.Sprintf("%.1f nonillion years", nonillionsOfYears)
 	case octillionsOfYears > 1:
-		return fmt.Sprintf("%.1f octillions of years", octillionsOfYears)
+		return fmt.Sprintf("%.1f octillion years", octillionsOfYears)
 	case septillionsOfYears > 1:
-		return fmt.Sprintf("%.1f septillions of years", septillionsOfYears)
+		return fmt.Sprintf("%.1f septillion years", septillionsOfYears)
 	case sextillionsOfYears > 1:
-		return fmt.Sprintf("%.1f sextillions of years", sextillionsOfYears)
+		return fmt.Sprintf("%.1f sextillion years", sextillionsOfYears)
 	case quintillionsOfYears >= 1:
 		return fmt.Sprintf("%.1f quintillion years", quintillionsOfYears)
 	case quadrillionsOfYears >= 1:
