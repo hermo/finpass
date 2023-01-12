@@ -14,11 +14,12 @@ Each generated password also includes a randomly placed 3-character alphanumeric
 Example:
 
 ```
-$ finpass -i
-valuuttanoteeraus-yliset-B4X-halonhakkaaja
+$ finpass -i -m 7
+36C-kytkea-terkut-koukuta
 Entropy and estimated time to crack using a fast GPU-based attack (20 MH/s, one or more RTX 4090):
-* Brute-force:    259.1 bits (1614835348617068708984695086383104.0 nonillions of years)
-* Wordlist-based:  66.5 bits (169.7 thousand years)
+* Brute-force:    154.2 bits (~43 nonillion years)
+* Known wordlist:  66.5 bits (~170 thousand years)
+* Known wordlist and parameters (-m=7):  58.6 bits (~7 centuries)
 ```
 
 The wordlist contains about 91k words and is a subset of the wordlist found at https://github.com/hugovk/everyfinnishword
