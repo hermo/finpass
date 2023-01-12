@@ -41,9 +41,16 @@ func main() {
 	fmt.Println(passphrase)
 
 	if settings.ShowInfo {
+		bruteEnt := bruteforceEntropy(passphrase)
+		wordlistEnt := wordlistEntropy(passphrase, '-', len(words))
 		fmt.Fprintln(os.Stderr, "Entropy and estimated time to crack using a fast GPU-based attack (20 MH/s, one or more RTX 4090):")
-		fmt.Fprintf(os.Stderr, "* Brute-force:    %5.1f bits (%s)\n", bruteforceEntropy(passphrase), estimateCrackTime(bruteforceEntropy(passphrase)))
-		fmt.Fprintf(os.Stderr, "* Wordlist-based: %5.1f bits (%s)\n", wordlistEntropy(passphrase, '-'), estimateCrackTime(wordlistEntropy(passphrase, '-')))
+		fmt.Fprintf(os.Stderr, "* Brute-force:    %5.1f bits (%s)\n", bruteEnt, estimateTimeToCrack(bruteEnt))
+		fmt.Fprintf(os.Stderr, "* Known wordlist: %5.1f bits (%s)\n", wordlistEnt, estimateTimeToCrack(wordlistEnt))
+		if settings.MaxLength > 0 {
+			smallWords := wordlistSubset(settings.MaxLength)
+			wordlistEntWithSize := wordlistEntropy(passphrase, '-', len(smallWords))
+			fmt.Fprintf(os.Stderr, "* Known wordlist and parameters (-m=%d): %5.1f bits (%s)\n", settings.MaxLength, wordlistEntWithSize, estimateTimeToCrack(wordlistEntWithSize))
+		}
 	}
 }
 
@@ -53,6 +60,17 @@ func randomInt(max int) int64 {
 		panic(err)
 	}
 	return n.Int64()
+}
+
+// wordlistSubset returns a subset of the wordlist with words of length
+func wordlistSubset(maxLength uint) []string {
+	var wordlist []string
+	for _, word := range words {
+		if uint(len(word)) <= maxLength {
+			wordlist = append(wordlist, word)
+		}
+	}
+	return wordlist
 }
 
 func randomWord(maxLength uint) string {

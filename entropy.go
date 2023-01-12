@@ -5,8 +5,11 @@ import (
 	"math"
 )
 
+// bruteForceEntropy calculates the entropy of a password based on the number of
+// characters and character classes used
 func bruteforceEntropy(password string) float64 {
-	// deduce character classes used from password. Classes include lowercase, uppercase, digits, and symbols
+	// deduce character classes used from password. Classes include lowercase,
+	// uppercase, digits, and symbols
 	lowercase := false
 	uppercase := false
 	digits := false
@@ -41,7 +44,8 @@ func bruteforceEntropy(password string) float64 {
 	return float64(len(password)) * math.Log2(float64(characters))
 }
 
-func wordlistEntropy(password string, separator rune) float64 {
+// wordlistEntropy calculates the entropy of a password based on wordlist size
+func wordlistEntropy(password string, separator rune, wordlistSize int) float64 {
 	// count the number of wordCount in the password. exclude one word.
 	wordCount := 0
 	for _, c := range password {
@@ -49,7 +53,6 @@ func wordlistEntropy(password string, separator rune) float64 {
 			wordCount++
 		}
 	}
-	wordlistSize := len(words)
 	wordsEnt := float64(wordCount) * math.Log2(float64(wordlistSize))
 
 	// calculate entropy increase from the separator. there are 3 separators and they are always -
@@ -61,7 +64,9 @@ func wordlistEntropy(password string, separator rune) float64 {
 	return wordsEnt + separatorEnt + randomEnt
 }
 
-func estimateCrackTime(entropy float64) string {
+// estimateTimeToCrack estimates the time it would take to crack a password
+// based on the entropy of the password
+func estimateTimeToCrack(entropy float64) string {
 	// Assume the cracking speed is 20MH/s
 	// Estimate based on RTX 4090 Hashcat benchmarks
 	// https://gist.github.com/Chick3nman/32e662a5bb63bc4f51b847bb422222fd
@@ -104,37 +109,37 @@ func estimateCrackTime(entropy float64) string {
 	// return the appropriate number of years, centuries, millennia, or aeons as a formatted string with 1 decimal place
 	switch {
 	case nonillionsOfYears > 1:
-		return fmt.Sprintf("%.1f nonillion years", nonillionsOfYears)
+		return fmt.Sprintf("~%.0f nonillion years", nonillionsOfYears)
 	case octillionsOfYears > 1:
-		return fmt.Sprintf("%.1f octillion years", octillionsOfYears)
+		return fmt.Sprintf("~%.0f octillion years", octillionsOfYears)
 	case septillionsOfYears > 1:
-		return fmt.Sprintf("%.1f septillion years", septillionsOfYears)
+		return fmt.Sprintf("~%.0f septillion years", septillionsOfYears)
 	case sextillionsOfYears > 1:
-		return fmt.Sprintf("%.1f sextillion years", sextillionsOfYears)
+		return fmt.Sprintf("~%.0f sextillion years", sextillionsOfYears)
 	case quintillionsOfYears >= 1:
-		return fmt.Sprintf("%.1f quintillion years", quintillionsOfYears)
+		return fmt.Sprintf("~%.0f quintillion years", quintillionsOfYears)
 	case quadrillionsOfYears >= 1:
-		return fmt.Sprintf("%.1f quadrillion years", quadrillionsOfYears)
+		return fmt.Sprintf("~%.0f quadrillion years", quadrillionsOfYears)
 	case trillionsOfYears >= 1:
-		return fmt.Sprintf("%.1f trillion years", trillionsOfYears)
+		return fmt.Sprintf("~%.0f trillion years", trillionsOfYears)
 	case billionsOfYears >= 1:
-		return fmt.Sprintf("%.1f billion years", billionsOfYears)
+		return fmt.Sprintf("~%.0f billion years", billionsOfYears)
 	case millionsOfYears >= 1:
-		return fmt.Sprintf("%.1f million years", millionsOfYears)
+		return fmt.Sprintf("~%.0f million years", millionsOfYears)
 	case thousandsOfYears >= 1:
-		return fmt.Sprintf("%.1f thousand years", thousandsOfYears)
+		return fmt.Sprintf("~%.0f thousand years", thousandsOfYears)
 	case centuries >= 1:
-		return fmt.Sprintf("%.1f centuries", centuries)
+		return fmt.Sprintf("~%.0f centuries", centuries)
 	case years >= 1:
-		return fmt.Sprintf("%.1f years", years)
+		return fmt.Sprintf("~%.1f years", years)
 	case days >= 1:
-		return fmt.Sprintf("%.1f days", days)
+		return fmt.Sprintf("~%.1f days", days)
 	case hours >= 1:
-		return fmt.Sprintf("%.1f hours", hours)
+		return fmt.Sprintf("~%.1f hours", hours)
 	case minutes >= 1:
-		return fmt.Sprintf("%.1f minutes", minutes)
+		return fmt.Sprintf("~%.1f minutes", minutes)
 	case seconds >= 1:
-		return fmt.Sprintf("%.1f seconds", seconds)
+		return fmt.Sprintf("~%.0f seconds", seconds)
 	default:
 		return "instantly"
 	}
