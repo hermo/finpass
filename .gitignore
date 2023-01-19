@@ -2,3 +2,8 @@ finpass
 /dist/
 /.vscode
 /.envrc
+
+
+# Added by cargo
+
+/target
