@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/rand"
-	"encoding/base32"
 	"flag"
 	"fmt"
 	"math/big"
@@ -34,7 +33,7 @@ func main() {
 		return randomWord(settings.MaxLength)
 	}
 
-	parts := []string{wordFn(), wordFn(), wordFn(), randomAlphaNumericString()}
+	parts := []string{wordFn(), wordFn(), wordFn(), randomAlphaNumericSegment()}
 	x := randomInt(4)
 	parts[x], parts[3] = parts[3], parts[x]
 	passphrase := fmt.Sprintf("%s-%s-%s-%s", parts[0], parts[1], parts[2], parts[3])
@@ -62,6 +61,18 @@ func randomInt(max int) int64 {
 	return n.Int64()
 }
 
+func randomByte() byte {
+	var b [1]byte
+	n, err := rand.Read(b[:])
+	if err != nil {
+		panic(err)
+	}
+	if n != 1 {
+		panic("expected to read 1 byte")
+	}
+	return b[0]
+}
+
 // wordlistSubset returns a subset of the wordlist with words of length
 func wordlistSubset(maxLength uint) []string {
 	var wordlist []string
@@ -84,31 +95,24 @@ func randomWord(maxLength uint) string {
 	return word
 }
 
-func randomAlphaNumericString() string {
-	for {
-		randomBytes := make([]byte, 2)
-		_, err := rand.Read(randomBytes)
-		if err != nil {
-			panic(err)
-		}
-		s := base32.StdEncoding.EncodeToString(randomBytes)[:3]
-		if isAlphaNumeric(s) {
-			return s
+func randomAlphaNumericSegment() string {
+	var segment string
+	var hasChar, hasNum bool
+
+	for segment = ""; len(segment) < 3 || !(hasChar && hasNum); {
+		hasChar = false
+		hasNum = false
+		segment = ""
+		for i := 0; i < 3; i++ {
+			c := randomByte()
+			if c >= '0' && c <= '9' {
+				hasNum = true
+				segment += string(c)
+			} else if c >= 'A' && c <= 'Z' {
+				hasChar = true
+				segment += string(c)
+			}
 		}
 	}
-}
-
-func isAlphaNumeric(s string) bool {
-	alpha := false
-	numeric := false
-
-	for _, r := range s {
-		if r >= 'A' && r <= 'Z' {
-			alpha = true
-		}
-		if r >= '0' && r <= '9' {
-			numeric = true
-		}
-	}
-	return alpha && numeric
+	return segment
 }
