@@ -60,9 +60,11 @@ fn get_words(max_length: usize) -> Vec<&'static str> {
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Maximum length of each word in the password
-    // The argument is not required
     #[arg(short, long, default_value_t = 0)]
     max_length: u8,
+    /// Show entropy and estimated time to crack. The flag should be -i or --info
+    #[arg(short, long)]
+    info: bool,
 }
 
 fn main() {
@@ -73,4 +75,30 @@ fn main() {
     }
     let password = generate_password(args.max_length as usize);
     println!("{}", password);
+
+    if args.info {
+        let brute_ent = bruteforce_entropy(&password);
+        let words_ent = wordlist_entropy(&password, '-', WORDLIST.len());
+        eprintln!("Entropy and estimated time to crack using a fast GPU-based attack (20 MH/s, one or more RTX 4090):");
+        eprintln!(
+            "* Brute-force:    {:5.1} bits ({})",
+            brute_ent,
+            estimate_time_to_crack(brute_ent)
+        );
+        eprintln!(
+            "* Known wordlist: {:5.1} bits ({})",
+            words_ent,
+            estimate_time_to_crack(words_ent)
+        );
+        if args.max_length > 0 {
+            let words = get_words(args.max_length as usize);
+            let words_ent = wordlist_entropy(&password, '-', words.len());
+            eprintln!(
+                "* Known wordlist and parameters (-m={}): {:5.1} bits ({})",
+                args.max_length,
+                words_ent,
+                estimate_time_to_crack(words_ent)
+            );
+        }
+    }
 }
