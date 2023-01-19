@@ -1,16 +1,20 @@
 use rand::seq::SliceRandom;
 use rand::Rng;
 mod words;
+use clap::Parser;
 use words::WORDLIST;
 
-fn main() {
+fn generate_password(max_length: usize) -> String {
     let mut rng = rand::thread_rng();
+    let wordlist = get_words(max_length);
+    // Generate the first three words
     let password: String = (0..3)
-        .map(|_| WORDLIST.choose(&mut rng).unwrap().to_string())
+        .map(|_| wordlist.choose(&mut rng).unwrap().to_string())
         .collect::<Vec<String>>()
         .join("-")
         .to_string();
 
+    // Generate the last three characters
     let mut segment = String::new();
     let mut has_char = false;
     let mut has_num = false;
@@ -31,9 +35,42 @@ fn main() {
         }
     }
 
+    // Determine the position of the last three characters
     let position = rng.gen_range(0..4);
+
+    // Combine the first three words and the last three characters
     let mut password_vec: Vec<&str> = password.split("-").collect();
     password_vec.insert(position, &segment);
-    let final_password = password_vec.join("-");
-    println!("{}", final_password);
+    password_vec.join("-")
+}
+
+// Create function that returns words from WORDLIST having a maximum length max_length
+fn get_words(max_length: usize) -> Vec<&'static str> {
+    if max_length == 0 {
+        return WORDLIST.to_vec();
+    }
+    WORDLIST
+        .iter()
+        .filter(|word| word.len() <= max_length)
+        .map(|word| *word)
+        .collect()
+}
+
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// Maximum length of each word in the password
+    // The argument is not required
+    #[arg(short, long, default_value_t = 0)]
+    max_length: u8,
+}
+
+fn main() {
+    let args = Args::parse();
+    if args.max_length != 0 && args.max_length < 3 {
+        eprintln!("Maximum word length must be at least 3");
+        std::process::exit(1);
+    }
+    let password = generate_password(args.max_length as usize);
+    println!("{}", password);
 }
