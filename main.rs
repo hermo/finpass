@@ -2,17 +2,18 @@ use rand::seq::SliceRandom;
 use rand::Rng;
 mod words;
 use clap::Parser;
+
+mod entropy;
+use entropy::{bruteforce_entropy, estimate_time_to_crack, wordlist_entropy};
 use words::WORDLIST;
 
 fn generate_password(max_length: usize) -> String {
     let mut rng = rand::thread_rng();
     let wordlist = get_words(max_length);
     // Generate the first three words
-    let password: String = (0..3)
+    let mut password_vec = (0..3)
         .map(|_| wordlist.choose(&mut rng).unwrap().to_string())
-        .collect::<Vec<String>>()
-        .join("-")
-        .to_string();
+        .collect::<Vec<String>>();
 
     // Generate the last three characters
     let mut segment = String::new();
@@ -39,8 +40,7 @@ fn generate_password(max_length: usize) -> String {
     let position = rng.gen_range(0..4);
 
     // Combine the first three words and the last three characters
-    let mut password_vec: Vec<&str> = password.split("-").collect();
-    password_vec.insert(position, &segment);
+    password_vec.insert(position, segment);
     password_vec.join("-")
 }
 
