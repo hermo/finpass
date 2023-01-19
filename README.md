@@ -29,4 +29,4 @@ The wordlist contains about 91k words and is a subset of the wordlist found at h
 Pre-built releases exist for Linux, macOS and Windows on amd64/arm64 platforms. See the releases for details.
 
 ## Development
-Clone the repo and run `go build`.
+Clone the repo and run `cargo build -r`.
