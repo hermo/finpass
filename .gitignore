@@ -2,3 +2,5 @@ finpass
 /dist/
 /.vscode
 /.envrc
+/result
+/.direnv/
