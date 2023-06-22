@@ -22,11 +22,17 @@ func ParseFlags() Settings {
 }
 
 func main() {
+	if err := run(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	settings := ParseFlags()
 
 	if settings.MaxLength > 0 && settings.MaxLength < 3 {
-		fmt.Println("maxlen must be at least 3")
-		os.Exit(1)
+		return fmt.Errorf("maxlen must be at least 3")
 	}
 
 	wordFn := func() string {
@@ -51,6 +57,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "* Known wordlist and parameters (-m=%d): %5.1f bits (%s)\n", settings.MaxLength, wordlistEntWithSize, estimateTimeToCrack(wordlistEntWithSize))
 		}
 	}
+	return nil
 }
 
 func randomInt(max int) int64 {
