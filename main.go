@@ -46,7 +46,7 @@ func run() error {
 	fmt.Println(passphrase)
 
 	if settings.ShowInfo {
-		bruteEnt := bruteforceEntropy(passphrase)
+		bruteEnt := bruteForceEntropy(passphrase)
 		wordlistEnt := wordlistEntropy(passphrase, '-', len(words))
 		fmt.Fprintln(os.Stderr, "Entropy and estimated time to crack using a fast GPU-based attack (20 MH/s, one or more RTX 4090):")
 		fmt.Fprintf(os.Stderr, "* Brute-force:    %5.1f bits (%s)\n", bruteEnt, estimateTimeToCrack(bruteEnt))

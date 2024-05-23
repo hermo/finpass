@@ -3,42 +3,56 @@ package main
 import (
 	"fmt"
 	"math"
+	"unicode"
 )
 
 // bruteForceEntropy calculates the entropy of a password based on the number of
 // characters and character classes used
-func bruteforceEntropy(password string) float64 {
+func bruteForceEntropy(password string) float64 {
 	// deduce character classes used from password. Classes include lowercase,
 	// uppercase, digits, and symbols
+	const (
+		lowercaseSize = 26
+		uppercaseSize = 26
+		digitSize     = 10
+		symbolSize    = 32 // !"#¤%&/()=?@£$€{[]}\`|<>'*-_^~§½
+	)
+
 	lowercase := false
 	uppercase := false
 	digits := false
 	symbols := false
+
 	for _, c := range password {
 		switch {
-		case c >= 'a' && c <= 'z':
+		case unicode.IsLower(c):
 			lowercase = true
-		case c >= 'A' && c <= 'Z':
+		case unicode.IsUpper(c):
 			uppercase = true
-		case c >= '0' && c <= '9':
+		case unicode.IsDigit(c):
 			digits = true
 		default:
 			symbols = true
 		}
 	}
-	// add the number of characters in each class used
+
+	// Add the number of characters in each class used
 	characters := 0
 	if lowercase {
-		characters += 26
+		characters += lowercaseSize
 	}
 	if uppercase {
-		characters += 26
+		characters += uppercaseSize
 	}
 	if digits {
-		characters += 10
+		characters += digitSize
 	}
 	if symbols {
-		characters += 10
+		characters += symbolSize
+	}
+
+	if characters == 0 {
+		return 0 // Handling edge case where the password is empty
 	}
 
 	return float64(len(password)) * math.Log2(float64(characters))
