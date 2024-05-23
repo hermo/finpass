@@ -60,8 +60,7 @@ func bruteForceEntropy(password string) float64 {
 
 // wordlistEntropy calculates the entropy of a password based on wordlist size
 func wordlistEntropy(password string, separator rune, wordlistSize int) float64 {
-	// count the number of wordCount in the password. exclude one word.
-	wordCount := 0
+	wordCount := 0 // Initialize to 0 to account for randomly generated passwords
 	for _, c := range password {
 		if c == separator {
 			wordCount++
@@ -69,11 +68,11 @@ func wordlistEntropy(password string, separator rune, wordlistSize int) float64 
 	}
 	wordsEnt := float64(wordCount) * math.Log2(float64(wordlistSize))
 
-	// calculate entropy increase from the separator. there are 3 separators and they are always -
-	separatorEnt := math.Log2(3)
+	// calculate entropy increase from the separator. Assuming there are 3 possible separators (e.g., '-', '_', and '.')
+	separatorEnt := math.Log2(3) * float64(wordCount-1) // there are (wordCount-1) separators
 
 	// one word is always 3 characters long and contains uppercase letters and one or more digits
-	randomEnt := 3 * math.Log2(36)
+	randomEnt := 3 * math.Log2(36) // 26 uppercase letters + 10 digits = 36 possible characters per position
 
 	return wordsEnt + separatorEnt + randomEnt
 }
