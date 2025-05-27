@@ -3,13 +3,51 @@ package main
 import (
 	"fmt"
 	"math"
+	"strings"
 )
+
+type AttackProfile struct {
+	Name        string
+	Description string
+	Speed       float64 // guesses per second
+}
+
+var attackProfiles = map[string]AttackProfile{
+	"legacy": {
+		Name:        "legacy",
+		Description: "Weak legacy hashes (NTLM)",
+		Speed:       308.2e9, // 308.2 GH/s
+	},
+	"weak": {
+		Name:        "weak", 
+		Description: "Fast modern hashes (SHA256)",
+		Speed:       27.6e9, // 27.6 GH/s
+	},
+	"standard": {
+		Name:        "standard",
+		Description: "Typical web app security (PBKDF2)",
+		Speed:       11.0e6, // 11.0 MH/s
+	},
+	"strong": {
+		Name:        "strong",
+		Description: "Security-focused apps (bcrypt)",
+		Speed:       300.5e3, // 300.5 kH/s
+	},
+	"paranoid": {
+		Name:        "paranoid",
+		Description: "Maximum security (scrypt)",
+		Speed:       8.9e3, // 8.9 kH/s
+	},
+	"online": {
+		Name:        "online",
+		Description: "Rate-limited online attacks",
+		Speed:       100, // 100 attempts/sec
+	},
+}
 
 // bruteForceEntropy calculates the entropy of a password based on the number of
 // characters and character classes used
 func bruteforceEntropy(password string) float64 {
-	// deduce character classes used from password. Classes include lowercase,
-	// uppercase, digits, and symbols
 	lowercase := false
 	uppercase := false
 	digits := false
@@ -26,7 +64,7 @@ func bruteforceEntropy(password string) float64 {
 			symbols = true
 		}
 	}
-	// add the number of characters in each class used
+
 	characters := 0
 	if lowercase {
 		characters += 26
@@ -38,109 +76,116 @@ func bruteforceEntropy(password string) float64 {
 		characters += 10
 	}
 	if symbols {
-		characters += 10
+		characters += 32 // Assuming 32 common symbols for simplicity
 	}
 
 	return float64(len(password)) * math.Log2(float64(characters))
 }
 
 // wordlistEntropy calculates the entropy of a password based on wordlist size
-func wordlistEntropy(password string, separator rune, wordlistSize int) float64 {
-	// count the number of wordCount in the password. exclude one word.
-	wordCount := 0
-	for _, c := range password {
-		if c == separator {
-			wordCount++
-		}
-	}
+func wordlistEntropy(password string, separator rune, wordlistSize int, wordCount int) float64 {
 	wordsEnt := float64(wordCount) * math.Log2(float64(wordlistSize))
 
-	// calculate entropy increase from the separator. there are 3 separators and they are always -
-	separatorEnt := math.Log2(3)
+	// Entropy of 3-character alphanumeric segment that must contain both letters and numbers
+	// Calculated as log2(36^3 - 26^3 - 10^3) = log2(46656 - 17576 - 1000) = log2(28080) ≈ 15.5
+	alphanumericEnt := 15.5
 
-	// one word is always 3 characters long and contains uppercase letters and one or more digits
-	randomEnt := 3 * math.Log2(36)
+	totalPositions := wordCount + 1
+	positionalEnt := math.Log2(float64(totalPositions))
 
-	return wordsEnt + separatorEnt + randomEnt
+	return wordsEnt + alphanumericEnt + positionalEnt
+}
+
+// patternAwareEntropy calculates entropy assuming attacker knows the pattern
+// but not the exact wordlist - they must brute-force the word characters
+func patternAwareEntropy(password string, separator rune, wordCount int) float64 {
+	parts := strings.Split(password, string(separator))
+
+	wordsEnt := 0.0
+
+	for _, part := range parts {
+		hasLetter := false
+		hasDigit := false
+		for _, c := range part {
+			if c >= 'A' && c <= 'Z' {
+				hasLetter = true
+			} else if c >= '0' && c <= '9' {
+				hasDigit = true
+			}
+		}
+
+		if hasLetter && hasDigit && len(part) == 3 {
+			// This is the alphanumeric segment, skip it
+		} else {
+			wordsEnt += float64(len(part)) * math.Log2(26)
+		}
+	}
+
+	alphanumericEnt := 15.5
+
+	totalPositions := wordCount + 1
+	positionalEnt := math.Log2(float64(totalPositions))
+
+	return wordsEnt + alphanumericEnt + positionalEnt
 }
 
 // estimateTimeToCrack estimates the time it would take to crack a password
-// based on the entropy of the password
-func estimateTimeToCrack(entropy float64) string {
-	// Assume the cracking speed is 20MH/s
-	// Estimate based on RTX 4090 Hashcat benchmarks
-	// https://gist.github.com/Chick3nman/32e662a5bb63bc4f51b847bb422222fd
-	guessesPerSecond := 20e6
-	// calculate the number of guesses needed to crack the password
-	guesses := math.Pow(2, entropy)
-	// calculate the number of seconds needed to crack the password
+// based on the entropy and attack speed (assumes finding password at 50% of search space)
+func estimateTimeToCrack(entropy float64, guessesPerSecond float64) string {
+	guesses := math.Pow(2, entropy) / 2 // Average case: find password halfway through search space
 	seconds := guesses / guessesPerSecond
-	// calculate minutes needed to crack the password
-	minutes := seconds / 60
-	// calculate hours needed to crack the password
-	hours := seconds / 60 / 60
-	// calculate days needed to crack the password
-	days := seconds / 60 / 60 / 24
-	// calculate the number of years needed to crack the password
-	years := seconds / 60 / 60 / 24 / 365
-	// calculate the number of centuries needed to crack the password
-	centuries := years / 100
-	// calculate thousands of years needed to crack the password
-	thousandsOfYears := years / 1000
-	// calculate millions of years needed to crack the password
-	millionsOfYears := years / 1000000
-	// calculate billions of years needed to crack the password
-	billionsOfYears := years / 1000000000
-	// calculate trillions of years needed to crack the password
-	trillionsOfYears := years / 1000000000000
-	// calculate quadrillions of years needed to crack the password
-	quadrillionsOfYears := years / 1000000000000000
-	// calculate quintillions of years needed to crack the password
-	quintillionsOfYears := years / 1000000000000000000
-	// calculate sextillions of years needed to crack the password
-	sextillionsOfYears := years / 1000000000000000000000
-	// calculate septillions of years needed to crack the password
-	septillionsOfYears := years / 1000000000000000000000000
-	// calculate octillions of years needed to crack the password
-	octillionsOfYears := years / 1000000000000000000000000000
-	// calculate nonillions of years needed to crack the password
-	nonillionsOfYears := years / 1000000000000000000000000000000
-
-	// return the appropriate number of years, centuries, millennia, or aeons as a formatted string with 1 decimal place
+	
+	// Convert to years for easier comparison
+	years := seconds / (60 * 60 * 24 * 365)
+	
 	switch {
-	case nonillionsOfYears > 1:
-		return fmt.Sprintf("~%.0f nonillion years", nonillionsOfYears)
-	case octillionsOfYears > 1:
-		return fmt.Sprintf("~%.0f octillion years", octillionsOfYears)
-	case septillionsOfYears > 1:
-		return fmt.Sprintf("~%.0f septillion years", septillionsOfYears)
-	case sextillionsOfYears > 1:
-		return fmt.Sprintf("~%.0f sextillion years", sextillionsOfYears)
-	case quintillionsOfYears >= 1:
-		return fmt.Sprintf("~%.0f quintillion years", quintillionsOfYears)
-	case quadrillionsOfYears >= 1:
-		return fmt.Sprintf("~%.0f quadrillion years", quadrillionsOfYears)
-	case trillionsOfYears >= 1:
-		return fmt.Sprintf("~%.0f trillion years", trillionsOfYears)
-	case billionsOfYears >= 1:
-		return fmt.Sprintf("~%.0f billion years", billionsOfYears)
-	case millionsOfYears >= 1:
-		return fmt.Sprintf("~%.0f million years", millionsOfYears)
-	case thousandsOfYears >= 1:
-		return fmt.Sprintf("~%.0f thousand years", thousandsOfYears)
-	case centuries >= 1:
-		return fmt.Sprintf("~%.0f centuries", centuries)
-	case years >= 1:
-		return fmt.Sprintf("~%.1f years", years)
-	case days >= 1:
-		return fmt.Sprintf("~%.1f days", days)
-	case hours >= 1:
-		return fmt.Sprintf("~%.1f hours", hours)
-	case minutes >= 1:
-		return fmt.Sprintf("~%.1f minutes", minutes)
-	case seconds >= 1:
-		return fmt.Sprintf("~%.0f seconds", seconds)
+	case seconds < 1e-3:
+		return "instant"
+	case seconds < 1:
+		return fmt.Sprintf("%.0fms", seconds*1000)
+	case seconds < 60:
+		return fmt.Sprintf("%.0fs", seconds)
+	case seconds < 3600:
+		return fmt.Sprintf("%.0fm", seconds/60)
+	case seconds < 86400:
+		return fmt.Sprintf("%.0fh", seconds/3600)
+	case years < 1:
+		return fmt.Sprintf("%.0fd", seconds/86400)
+	case years < 1e3:
+		return fmt.Sprintf("%.1fy", years)
+	case years < 1e6:
+		return fmt.Sprintf("%.0fky", years/1e3)
+	case years < 1e9:
+		return fmt.Sprintf("%.0fMy", years/1e6)
+	case years < 1e12:
+		return fmt.Sprintf("%.0fBy", years/1e9)
+	case years < 1e15:
+		return fmt.Sprintf("%.0fTy", years/1e12)
+	case years < 1e18:
+		return fmt.Sprintf("%.0fQy", years/1e15)
 	default:
-		return "instantly"
+		// Use scientific notation for extremely large numbers
+		exp := math.Log10(years)
+		return fmt.Sprintf("1e%.0fy", exp)
 	}
+}
+
+func getProfile(name string) (AttackProfile, bool) {
+	profile, exists := attackProfiles[name]
+	return profile, exists
+}
+
+func listAllProfiles() {
+	fmt.Println("Available attack profiles:")
+	for _, profile := range []string{"legacy", "weak", "standard", "strong", "paranoid", "online"} {
+		p := attackProfiles[profile]
+		fmt.Printf("  %-10s - %s\n", p.Name, p.Description)
+	}
+}
+
+func calculateEntropyForProfile(password string, delimiter rune, wordCount int, profile AttackProfile) (float64, float64, float64) {
+	bruteEnt := bruteforceEntropy(password)
+	patternEnt := patternAwareEntropy(password, delimiter, wordCount)
+	wordlistEnt := wordlistEntropy(password, delimiter, len(words), wordCount)
+	return bruteEnt, patternEnt, wordlistEnt
 }
