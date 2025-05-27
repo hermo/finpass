@@ -18,6 +18,7 @@ type Settings struct {
 	ListProfiles bool
 	AllProfiles  bool
 	CustomSpeed  float64
+	Count        int
 }
 
 func ParseFlags() Settings {
@@ -30,6 +31,7 @@ func ParseFlags() Settings {
 	flag.BoolVar(&settings.ListProfiles, "list-profiles", false, "show available attack profiles")
 	flag.BoolVar(&settings.AllProfiles, "all-profiles", false, "show entropy for all attack profiles")
 	flag.Float64Var(&settings.CustomSpeed, "custom-speed", 0, "custom attack speed (guesses per second)")
+	flag.IntVar(&settings.Count, "n", 1, "number of passwords to generate")
 	flag.Parse()
 	return settings
 }
@@ -52,29 +54,45 @@ func main() {
 		os.Exit(1)
 	}
 
+	if settings.Count < 1 {
+		fmt.Println("count must be at least 1")
+		os.Exit(1)
+	}
+
+	if settings.Count > 1 && (settings.ShowInfo || settings.AllProfiles) {
+		fmt.Println("entropy analysis (-i or -all-profiles) cannot be used with multiple passwords (-n > 1)")
+		os.Exit(1)
+	}
+
 	wordFn := func() string {
 		return randomWord(settings.MaxLength)
 	}
 
-	var parts []string
-	for i := 0; i < settings.WordCount; i++ {
-		parts = append(parts, wordFn())
-	}
-	parts = append(parts, randomAlphaNumericSegment())
-
-	totalParts := len(parts)
-	x := randomInt(totalParts)
-	parts[x], parts[totalParts-1] = parts[totalParts-1], parts[x]
-
+	var lastPassphrase string
 	delimiterRune := rune(settings.Delimiter[0])
-	passphrase := strings.Join(parts, settings.Delimiter)
 
-	fmt.Println(passphrase)
+	for i := 0; i < settings.Count; i++ {
+		var parts []string
+		for j := 0; j < settings.WordCount; j++ {
+			parts = append(parts, wordFn())
+		}
+		parts = append(parts, randomAlphaNumericSegment())
+
+		totalParts := len(parts)
+		x := randomInt(totalParts)
+		parts[x], parts[totalParts-1] = parts[totalParts-1], parts[x]
+
+		passphrase := strings.Join(parts, settings.Delimiter)
+		lastPassphrase = passphrase
+
+		fmt.Println(passphrase)
+	}
 
 	if settings.ShowInfo || settings.AllProfiles {
+		passphrase := lastPassphrase
 		if settings.AllProfiles {
 			bruteEnt, patternEnt, wordlistEnt := calculateEntropyForProfile(passphrase, delimiterRune, settings.WordCount, AttackProfile{})
-			
+
 			fmt.Fprintf(os.Stderr, "Password entropy analysis:\n")
 			fmt.Fprintf(os.Stderr, "  Brute-force:          %5.1f bits\n", bruteEnt)
 			fmt.Fprintf(os.Stderr, "  Pattern-aware attack: %5.1f bits\n", patternEnt)
@@ -85,7 +103,7 @@ func main() {
 				fmt.Fprintf(os.Stderr, "  Known wordlist+params:%5.1f bits\n", wordlistEntWithSize)
 			}
 			fmt.Fprintln(os.Stderr, "")
-			
+
 			fmt.Fprintf(os.Stderr, "Time to crack estimates by attack scenario:\n")
 			fmt.Fprintf(os.Stderr, "%-10s %-18s %-18s %-18s", "Profile", "Brute-force", "Pattern-aware", "Wordlist")
 			if settings.MaxLength > 0 {
@@ -97,10 +115,10 @@ func main() {
 				fmt.Fprintf(os.Stderr, " %-18s", "------------------")
 			}
 			fmt.Fprintln(os.Stderr, "")
-			
+
 			for _, profileName := range []string{"online", "paranoid", "strong", "standard", "weak", "legacy"} {
 				profile := attackProfiles[profileName]
-				fmt.Fprintf(os.Stderr, "%-10s %-18s %-18s %-18s", 
+				fmt.Fprintf(os.Stderr, "%-10s %-18s %-18s %-18s",
 					profile.Name,
 					estimateTimeToCrack(bruteEnt, profile.Speed),
 					estimateTimeToCrack(patternEnt, profile.Speed),
@@ -115,7 +133,7 @@ func main() {
 		} else {
 			var speed float64
 			var profileDesc string
-			
+
 			if settings.CustomSpeed > 0 {
 				speed = settings.CustomSpeed
 				profileDesc = fmt.Sprintf("custom speed (%.0e guesses/sec)", speed)
@@ -129,9 +147,9 @@ func main() {
 				speed = profile.Speed
 				profileDesc = profile.Description
 			}
-			
+
 			bruteEnt, patternEnt, wordlistEnt := calculateEntropyForProfile(passphrase, delimiterRune, settings.WordCount, AttackProfile{Speed: speed})
-			
+
 			fmt.Fprintf(os.Stderr, "Entropy and estimated time to crack using %s:\n", profileDesc)
 			fmt.Fprintf(os.Stderr, "* Brute-force:           %5.1f bits (%s)\n", bruteEnt, estimateTimeToCrack(bruteEnt, speed))
 			fmt.Fprintf(os.Stderr, "* Pattern-aware attack:  %5.1f bits (%s)\n", patternEnt, estimateTimeToCrack(patternEnt, speed))
