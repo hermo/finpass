@@ -72,5 +72,71 @@ The password generator has been thoroughly tested for randomness quality using s
 
 Run [`test-randomness.sh`](test-randomness.sh) to perform your own randomness analysis.
 
-## Development
-Clone the repo and run `go build`.
+## Building from Source
+
+### Prerequisites
+- Go 1.21 or later
+- The compressed wordlist file (`words.txt.gz`) must be present
+
+### Build Instructions
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/hermo/finpass.git
+   cd finpass
+   ```
+
+2. Build the optimized binary:
+   ```bash
+   go build -ldflags="-s -w" -o finpass
+   ```
+
+**Note**: The compressed wordlist file `words.txt.gz` is committed to the repository and embedded during build. No additional steps are needed.
+
+### Build Details
+
+The binary uses an embedded compressed wordlist for optimal size:
+- **Wordlist**: 91,443 Finnish words compressed from 1.1MB to 321KB (69.6% reduction)
+- **Binary size**: ~2.2MB (down from 5.0MB unoptimized)
+- **Startup time**: ~17ms (includes wordlist decompression)
+- **Dependencies**: None (uses only Go standard library)
+
+The wordlist is automatically decompressed at startup using `//go:embed` and gzip compression.
+
+### Development
+
+For development builds without optimization:
+```bash
+go build
+```
+
+For release builds with full optimization:
+```bash
+go build -ldflags="-s -w -X main.version=$(git describe --tags)"
+```
+
+### Updating the Wordlist
+
+If you need to update the Finnish wordlist:
+
+1. **Replace the source wordlist**:
+   ```bash
+   # Replace words.txt with your new wordlist (one word per line)
+   # Example: download from https://github.com/hugovk/everyfinnishword
+   ```
+
+2. **Regenerate the compressed wordlist**:
+   ```bash
+   gzip -9 -c words.txt > words.txt.gz
+   ```
+
+3. **Rebuild the binary**:
+   ```bash
+   go build -ldflags="-s -w" -o finpass
+   ```
+
+**Important**: Both `words.txt.gz` (compressed wordlist) and `words.txt` (source) should be committed to the repository. The `words.txt.gz` file is embedded in the binary during build via `//go:embed`, while `words.txt` serves as the source for regenerating the compressed version when needed.
+
+**File sizes**:
+- `words.txt`: ~1.1MB (91,443 words, human-readable source)
+- `words.txt.gz`: ~321KB (compressed, embedded in binary)
