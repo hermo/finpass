@@ -9,6 +9,9 @@ import (
 	"strings"
 )
 
+// Version is set at build time via -ldflags
+var version = "devel"
+
 type Settings struct {
 	MaxLength    uint
 	ShowInfo     bool
@@ -19,19 +22,35 @@ type Settings struct {
 	AllProfiles  bool
 	CustomSpeed  float64
 	Count        int
+	ShowVersion  bool
 }
 
 func ParseFlags() Settings {
 	var settings Settings
-	flag.UintVar(&settings.MaxLength, "m", 0, "maxlen")
+	flag.UintVar(&settings.MaxLength, "m", 0, "maximum length of each word component")
 	flag.BoolVar(&settings.ShowInfo, "i", false, "show entropy and estimated time to crack")
-	flag.StringVar(&settings.Delimiter, "d", "-", "delimiter")
+	flag.StringVar(&settings.Delimiter, "d", "-", "delimiter between password components")
 	flag.IntVar(&settings.WordCount, "w", 3, "number of words (1-6)")
 	flag.StringVar(&settings.Profile, "profile", "standard", "attack profile (legacy, weak, standard, strong, paranoid, online)")
 	flag.BoolVar(&settings.ListProfiles, "list-profiles", false, "show available attack profiles")
 	flag.BoolVar(&settings.AllProfiles, "all-profiles", false, "show entropy for all attack profiles")
 	flag.Float64Var(&settings.CustomSpeed, "custom-speed", 0, "custom attack speed (guesses per second)")
 	flag.IntVar(&settings.Count, "n", 1, "number of passwords to generate")
+	flag.BoolVar(&settings.ShowVersion, "version", false, "show version information")
+	flag.BoolVar(&settings.ShowVersion, "V", false, "show version information (short form)")
+
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage: %s [OPTIONS]\n", os.Args[0])
+		fmt.Fprintln(os.Stderr, "\nGenerate passwords using Finnish language words.")
+		fmt.Fprintln(os.Stderr, "\nOptions:")
+		flag.PrintDefaults()
+		fmt.Fprintln(os.Stderr, "\nExamples:")
+		fmt.Fprintln(os.Stderr, "  finpass                    # Generate one password")
+		fmt.Fprintln(os.Stderr, "  finpass -n 5               # Generate 5 passwords")
+		fmt.Fprintln(os.Stderr, "  finpass -i -profile strong # Show entropy analysis")
+		fmt.Fprintln(os.Stderr, "  finpass -w 4 -d .          # 4 words with dot delimiter")
+	}
+
 	flag.Parse()
 	return settings
 }
@@ -39,28 +58,34 @@ func ParseFlags() Settings {
 func main() {
 	settings := ParseFlags()
 
+	if settings.ShowVersion {
+		fmt.Printf("finpass version %s\n", version)
+		fmt.Println("Generate passwords using Finnish language words")
+		return
+	}
+
 	if settings.ListProfiles {
 		listAllProfiles()
 		return
 	}
 
 	if settings.MaxLength > 0 && settings.MaxLength < 3 {
-		fmt.Println("maxlen must be at least 3")
+		fmt.Fprintln(os.Stderr, "maxlen must be at least 3")
 		os.Exit(1)
 	}
 
 	if settings.WordCount < 1 || settings.WordCount > 6 {
-		fmt.Println("word count must be between 1 and 6")
+		fmt.Fprintln(os.Stderr, "word count must be between 1 and 6")
 		os.Exit(1)
 	}
 
 	if settings.Count < 1 {
-		fmt.Println("count must be at least 1")
+		fmt.Fprintln(os.Stderr, "count must be at least 1")
 		os.Exit(1)
 	}
 
 	if settings.Count > 1 && (settings.ShowInfo || settings.AllProfiles) {
-		fmt.Println("entropy analysis (-i or -all-profiles) cannot be used with multiple passwords (-n > 1)")
+		fmt.Fprintln(os.Stderr, "entropy analysis (-i or -all-profiles) cannot be used with multiple passwords (-n > 1)")
 		os.Exit(1)
 	}
 
@@ -140,8 +165,8 @@ func main() {
 			} else {
 				profile, exists := getProfile(settings.Profile)
 				if !exists {
-					fmt.Printf("Unknown profile: %s\n", settings.Profile)
-					fmt.Println("Use --list-profiles to see available profiles")
+					fmt.Fprintf(os.Stderr, "Unknown profile: %s\n", settings.Profile)
+					fmt.Fprintln(os.Stderr, "Use --list-profiles to see available profiles")
 					os.Exit(1)
 				}
 				speed = profile.Speed
