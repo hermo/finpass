@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	// Default password generation parameters
+	// Default passphrase generation parameters
 	DefaultWordCount     = 3
 	MinWordCount         = 1
 	MaxWordCount         = 6
@@ -39,24 +39,24 @@ func ParseFlags() Settings {
 	var settings Settings
 	flag.UintVar(&settings.MaxLength, "m", 0, "maximum length of each word component")
 	flag.BoolVar(&settings.ShowInfo, "i", false, "show entropy and estimated time to crack")
-	flag.StringVar(&settings.Delimiter, "d", "-", "delimiter between password components")
+	flag.StringVar(&settings.Delimiter, "d", "-", "delimiter between passphrase components")
 	flag.IntVar(&settings.WordCount, "w", DefaultWordCount, "number of words (1-6)")
 	flag.StringVar(&settings.Profile, "profile", "standard", "attack profile (legacy, weak, standard, strong, paranoid, online)")
 	flag.BoolVar(&settings.ListProfiles, "list-profiles", false, "show available attack profiles")
 	flag.BoolVar(&settings.AllProfiles, "all-profiles", false, "show entropy for all attack profiles")
 	flag.Float64Var(&settings.CustomSpeed, "custom-speed", 0, "custom attack speed (guesses per second)")
-	flag.IntVar(&settings.Count, "n", DefaultPasswordCount, "number of passwords to generate")
+	flag.IntVar(&settings.Count, "n", DefaultPasswordCount, "number of passphrases to generate")
 	flag.BoolVar(&settings.ShowVersion, "version", false, "show version information")
 	flag.BoolVar(&settings.ShowVersion, "V", false, "show version information (short form)")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [OPTIONS]\n", os.Args[0])
-		fmt.Fprintln(os.Stderr, "\nGenerate passwords using Finnish language words.")
+		fmt.Fprintln(os.Stderr, "\nGenerate passphrases using Finnish language words.")
 		fmt.Fprintln(os.Stderr, "\nOptions:")
 		flag.PrintDefaults()
 		fmt.Fprintln(os.Stderr, "\nExamples:")
-		fmt.Fprintln(os.Stderr, "  finpass                    # Generate one password")
-		fmt.Fprintln(os.Stderr, "  finpass -n 5               # Generate 5 passwords")
+		fmt.Fprintln(os.Stderr, "  finpass                    # Generate one passphrase")
+		fmt.Fprintln(os.Stderr, "  finpass -n 5               # Generate 5 passphrases")
 		fmt.Fprintln(os.Stderr, "  finpass -i -profile strong # Show entropy analysis")
 		fmt.Fprintln(os.Stderr, "  finpass -w 4 -d .          # 4 words with dot delimiter")
 	}
@@ -70,7 +70,7 @@ func main() {
 
 	if settings.ShowVersion {
 		fmt.Printf("finpass version %s\n", version)
-		fmt.Println("Generate passwords using Finnish language words")
+		fmt.Println("Generate passphrases using Finnish language words")
 		return
 	}
 
@@ -95,7 +95,7 @@ func main() {
 	}
 
 	if settings.Count > 1 && (settings.ShowInfo || settings.AllProfiles) {
-		fmt.Fprintln(os.Stderr, "entropy analysis (-i or -all-profiles) cannot be used with multiple passwords (-n > 1)")
+		fmt.Fprintln(os.Stderr, "entropy analysis (-i or -all-profiles) cannot be used with multiple passphrases (-n > 1)")
 		os.Exit(1)
 	}
 

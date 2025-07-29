@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Test script for finpass password randomness
+# Test script for finpass passphrase randomness
 # Tests the actual entropy sources, not formatted strings
 
 set -e
@@ -10,7 +10,7 @@ echo
 
 # Configuration
 NUM_PASSWORDS=100000
-OUTPUT_FILE="passwords.txt"
+OUTPUT_FILE="passphrases.txt"
 ENTROPY_FILE="entropy_data.bin"
 
 # Check if finpass binary exists
@@ -19,9 +19,9 @@ if [ ! -f "./finpass" ]; then
     exit 1
 fi
 
-echo "Step 1: Generating $NUM_PASSWORDS passwords..."
+echo "Step 1: Generating $NUM_PASSWORDS passphrases..."
 ./finpass -n $NUM_PASSWORDS > $OUTPUT_FILE
-echo "Generated passwords saved to $OUTPUT_FILE"
+echo "Generated passphrases saved to $OUTPUT_FILE"
 
 echo
 echo "Step 2: Analyzing word selection randomness..."
@@ -92,7 +92,7 @@ done
 echo
 echo "Step 5: Testing for sequential patterns..."
 
-# Check if consecutive passwords share components
+# Check if consecutive passphrases share components
 echo "Checking for sequential correlation in word choices..."
 awk -F'-' '{for(i=1;i<=NF;i++) print NR":"$i}' $OUTPUT_FILE | \
 grep -v '[A-Z0-9]' | head -1000 > word_positions.txt
@@ -107,7 +107,7 @@ with open('word_positions.txt', 'r') as f:
         line_num, word = line.strip().split(':', 1)
         line_num = int(line_num)
         
-        if len(prev_words) >= 10:  # Check last 10 passwords
+        if len(prev_words) >= 10:  # Check last 10 passphrases
             if word in [w for _, w in prev_words[-10:]]:
                 correlations += 1
             total_comparisons += 1
@@ -126,7 +126,7 @@ echo
 echo
 echo "Step 6: Duplicate check..."
 DUPES=$(sort $OUTPUT_FILE | uniq -d | wc -l)
-echo "Duplicate passwords: $DUPES (should be 0)"
+echo "Duplicate passphrases: $DUPES (should be 0)"
 
 
 echo "Step 7: Wordlist coverage analysis..."

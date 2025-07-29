@@ -6,8 +6,8 @@ import (
 
 func TestBruteforceEntropy(t *testing.T) {
 	tests := []struct {
-		password string
-		want     float64
+		passphrase string
+		want       float64
 	}{
 		{"abc", 14.101319154423276},
 		{"ABC", 14.101319154423276},
@@ -17,15 +17,15 @@ func TestBruteforceEntropy(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		if got := BruteforceEntropy(tt.password); got != tt.want {
-			t.Errorf("BruteforceEntropy(%q) = %v, want %v", tt.password, got, tt.want)
+		if got := BruteforceEntropy(tt.passphrase); got != tt.want {
+			t.Errorf("BruteforceEntropy(%q) = %v, want %v", tt.passphrase, got, tt.want)
 		}
 	}
 }
 
 func TestWordlistEntropy(t *testing.T) {
 	tests := []struct {
-		password     string
+		passphrase   string
 		separator    rune
 		wordlistSize int
 		wordCount    int
@@ -36,8 +36,8 @@ func TestWordlistEntropy(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		if got := WordlistEntropy(tt.password, tt.separator, tt.wordlistSize, tt.wordCount); got != tt.want {
-			t.Errorf("WordlistEntropy(%q, %q, %d, %d) = %v, want %v", tt.password, string(tt.separator), tt.wordlistSize, tt.wordCount, got, tt.want)
+		if got := WordlistEntropy(tt.passphrase, tt.separator, tt.wordlistSize, tt.wordCount); got != tt.want {
+			t.Errorf("WordlistEntropy(%q, %q, %d, %d) = %v, want %v", tt.passphrase, string(tt.separator), tt.wordlistSize, tt.wordCount, got, tt.want)
 		}
 	}
 }

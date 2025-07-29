@@ -61,14 +61,14 @@ var attackProfiles = map[string]AttackProfile{
 	},
 }
 
-// bruteForceEntropy calculates the entropy of a password based on the number of
+// bruteForceEntropy calculates the entropy of a passphrase based on the number of
 // characters and character classes used
-func BruteforceEntropy(password string) float64 {
+func BruteforceEntropy(passphrase string) float64 {
 	lowercase := false
 	uppercase := false
 	digits := false
 	symbols := false
-	for _, c := range password {
+	for _, c := range passphrase {
 		switch {
 		case c >= 'a' && c <= 'z':
 			lowercase = true
@@ -95,11 +95,11 @@ func BruteforceEntropy(password string) float64 {
 		characters += 32 // Common symbols
 	}
 
-	return float64(len(password)) * math.Log2(float64(characters))
+	return float64(len(passphrase)) * math.Log2(float64(characters))
 }
 
-// wordlistEntropy calculates the entropy of a password based on wordlist size
-func WordlistEntropy(password string, separator rune, wordlistSize int, wordCount int) float64 {
+// wordlistEntropy calculates the entropy of a passphrase based on wordlist size
+func WordlistEntropy(passphrase string, separator rune, wordlistSize int, wordCount int) float64 {
 	wordsEnt := float64(wordCount) * math.Log2(float64(wordlistSize))
 
 	// Entropy of 3-character alphanumeric segment that must contain both letters and numbers
@@ -115,8 +115,8 @@ func WordlistEntropy(password string, separator rune, wordlistSize int, wordCoun
 
 // patternAwareEntropy calculates entropy assuming attacker knows the pattern
 // but not the exact wordlist - they must brute-force the word characters
-func PatternAwareEntropy(password string, separator rune, wordCount int) float64 {
-	parts := strings.Split(password, string(separator))
+func PatternAwareEntropy(passphrase string, separator rune, wordCount int) float64 {
+	parts := strings.Split(passphrase, string(separator))
 
 	wordsEnt := 0.0
 
@@ -146,10 +146,10 @@ func PatternAwareEntropy(password string, separator rune, wordCount int) float64
 	return wordsEnt + alphanumericEnt + positionalEnt
 }
 
-// estimateTimeToCrack estimates the time it would take to crack a password
-// based on the entropy and attack speed (assumes finding password at 50% of search space)
+// estimateTimeToCrack estimates the time it would take to crack a passphrase
+// based on the entropy and attack speed (assumes finding passphrase at 50% of search space)
 func EstimateTimeToCrack(entropy float64, guessesPerSecond float64) string {
-	guesses := math.Pow(2, entropy) / 2 // Average case: find password halfway through search space
+	guesses := math.Pow(2, entropy) / 2 // Average case: find passphrase halfway through search space
 	seconds := guesses / guessesPerSecond
 
 	// Convert to years for easier comparison
@@ -200,10 +200,10 @@ func ListAllProfiles() {
 	}
 }
 
-func CalculateEntropyForProfile(password string, delimiter rune, wordCount int, profile AttackProfile) (float64, float64, float64) {
-	bruteEnt := BruteforceEntropy(password)
-	patternEnt := PatternAwareEntropy(password, delimiter, wordCount)
-	wordlistEnt := WordlistEntropy(password, delimiter, len(words), wordCount)
+func CalculateEntropyForProfile(passphrase string, delimiter rune, wordCount int, profile AttackProfile) (float64, float64, float64) {
+	bruteEnt := BruteforceEntropy(passphrase)
+	patternEnt := PatternAwareEntropy(passphrase, delimiter, wordCount)
+	wordlistEnt := WordlistEntropy(passphrase, delimiter, len(words), wordCount)
 	return bruteEnt, patternEnt, wordlistEnt
 }
 

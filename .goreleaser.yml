@@ -50,7 +50,7 @@ nfpms:
   - vendor: Mirko Grönroos
     homepage: https://github.com/hermo/finpass
     maintainer: Mirko Grönroos <mirko@mirko.fi>
-    description: finpass generates passwords using Finnish language words
+    description: finpass generates passphrases using Finnish language words
     license: MIT
     formats:
       - deb
@@ -72,7 +72,7 @@ brews:
 
     directory: Formula
     homepage: "https://github.com/hermo/finpass"
-    description: "finpass generates passwords using Finnish language words"
+    description: "finpass generates passphrases using Finnish language words"
     license: "MIT"
 
     # Setting this will prevent goreleaser to actually try to commit the updated

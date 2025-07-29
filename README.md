@@ -1,6 +1,6 @@
-# Generate passwords using Finnish language words
+# Generate passphrases using Finnish language words
 
-This tiny program generates somewhat memorable passwords in Finnish.
+This tiny program generates somewhat memorable passphrases in Finnish.
 Each generated password also includes a randomly placed 3-character alphanumeric section to add entropy.
 
 ## Flags
@@ -11,7 +11,7 @@ Each generated password also includes a randomly placed 3-character alphanumeric
 | `-m MAXLEN`       | Maximum length of each word component                         |
 | `-d DELIM`        | Specify delimiter (default is `-`)                           |
 | `-w COUNT`        | Number of words (1-6, default is 3)                          |
-| `-n COUNT`        | Number of passwords to generate (default is 1)               |
+| `-n COUNT`        | Number of passphrases to generate (default is 1)               |
 | `-profile NAME`   | Attack profile for entropy calculation (default is `standard`) |
 | `-list-profiles`  | Show available attack profiles                                |
 | `-all-profiles`   | Show entropy for all attack profiles                         |
@@ -47,9 +47,9 @@ Pre-built releases exist for Linux, macOS and Windows on amd64/arm64 platforms. 
 
 ## Randomness Testing
 
-The password generator has been thoroughly tested for randomness quality using statistical analysis:
+The passphrase generator has been thoroughly tested for randomness quality using statistical analysis:
 
-### Test Results (100,000 password sample)
+### Test Results (100,000 passphrase sample)
 
 - **Word Selection Randomness**: ✅ EXCELLENT
   - Coefficient of Variation: 0.5071 vs expected 0.5415 (6.4% deviation)
@@ -64,7 +64,7 @@ The password generator has been thoroughly tested for randomness quality using s
   - Proper distribution across 46,656 possible combinations
 
 - **Duplicate Prevention**: ✅ PERFECT
-  - 0 duplicates in 100,000 generated passwords
+  - 0 duplicates in 100,000 generated passphrases
 
 - **Wordlist Coverage**: ✅ EXCELLENT
   - 96.19% coverage vs expected 96.24% (0.04% difference)
