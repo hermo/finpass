@@ -95,6 +95,10 @@ func main() {
 
 	var lastPassphrase string
 	delimiterRune := rune(settings.Delimiter[0])
+	var smallWords []string
+	if settings.MaxLength > 0 {
+		smallWords = wordlistSubset(settings.MaxLength)
+	}
 
 	for i := 0; i < settings.Count; i++ {
 		var parts []string
@@ -127,7 +131,6 @@ func main() {
 			fmt.Fprintf(os.Stderr, "  Pattern-aware attack: %5.1f bits\n", patternEnt)
 			fmt.Fprintf(os.Stderr, "  Known wordlist:       %5.1f bits\n", wordlistEnt)
 			if settings.MaxLength > 0 {
-				smallWords := wordlistSubset(settings.MaxLength)
 				wordlistEntWithSize := wordlistEntropy(passphrase, delimiterRune, len(smallWords), settings.WordCount)
 				fmt.Fprintf(os.Stderr, "  Known wordlist+params:%5.1f bits\n", wordlistEntWithSize)
 			}
@@ -153,7 +156,6 @@ func main() {
 					estimateTimeToCrack(patternEnt, profile.Speed),
 					estimateTimeToCrack(wordlistEnt, profile.Speed))
 				if settings.MaxLength > 0 {
-					smallWords := wordlistSubset(settings.MaxLength)
 					wordlistEntWithSize := wordlistEntropy(passphrase, delimiterRune, len(smallWords), settings.WordCount)
 					fmt.Fprintf(os.Stderr, " %-18s", estimateTimeToCrack(wordlistEntWithSize, profile.Speed))
 				}
@@ -184,7 +186,6 @@ func main() {
 			fmt.Fprintf(os.Stderr, "* Pattern-aware attack:  %5.1f bits (%s)\n", patternEnt, estimateTimeToCrack(patternEnt, speed))
 			fmt.Fprintf(os.Stderr, "* Known wordlist:        %5.1f bits (%s)\n", wordlistEnt, estimateTimeToCrack(wordlistEnt, speed))
 			if settings.MaxLength > 0 {
-				smallWords := wordlistSubset(settings.MaxLength)
 				wordlistEntWithSize := wordlistEntropy(passphrase, delimiterRune, len(smallWords), settings.WordCount)
 				fmt.Fprintf(os.Stderr, "* Known wordlist and parameters (-m=%d): %5.1f bits (%s)\n", settings.MaxLength, wordlistEntWithSize, estimateTimeToCrack(wordlistEntWithSize, speed))
 			}
@@ -201,18 +202,6 @@ func randomInt(max int) (int64, error) {
 		return 0, fmt.Errorf("failed to generate random integer: %w", err)
 	}
 	return nBig.Int64(), nil
-}
-
-func randomByte() (byte, error) {
-	var b [1]byte
-	n, err := rand.Read(b[:])
-	if err != nil {
-		return 0, fmt.Errorf("failed to read random byte: %w", err)
-	}
-	if n != 1 {
-		return 0, fmt.Errorf("expected to read 1 byte, but read %d", n)
-	}
-	return b[0], nil
 }
 
 func wordlistSubset(maxLength uint) []string {
@@ -247,27 +236,39 @@ func randomWord(maxLength uint) string {
 }
 
 func randomAlphaNumericSegment() string {
-	var segment string
+	const (
+		alphanumericChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	)
+
+	var sb strings.Builder
+	sb.Grow(3) // Pre-allocate capacity for 3 characters
+
 	var hasChar, hasNum bool
 
-	for segment = ""; len(segment) < 3 || !(hasChar && hasNum); {
+	for {
+		sb.Reset() // Clear the builder for a new attempt
 		hasChar = false
 		hasNum = false
-		segment = ""
+
 		for i := 0; i < 3; i++ {
-			c, err := randomByte()
+			// Generate a random index for the alphanumeric character set
+			idx, err := rand.Int(rand.Reader, big.NewInt(int64(len(alphanumericChars))))
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error generating random byte: %v\n", err)
+				fmt.Fprintf(os.Stderr, "Error generating random index for alphanumeric character: %v\n", err)
 				os.Exit(1)
 			}
-			if c >= '0' && c <= '9' {
+			char := alphanumericChars[idx.Int64()]
+			sb.WriteByte(char)
+
+			if char >= '0' && char <= '9' {
 				hasNum = true
-				segment += string(c)
-			} else if c >= 'A' && c <= 'Z' {
+			} else {
 				hasChar = true
-				segment += string(c)
 			}
 		}
+
+		if hasChar && hasNum {
+			return sb.String()
+		}
 	}
-	return segment
 }
