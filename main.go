@@ -1,12 +1,22 @@
 package main
 
 import (
-	"crypto/rand"
 	"flag"
 	"fmt"
-	"math/big"
 	"os"
 	"strings"
+
+	"github.com/hermo/finpass/entropy"
+)
+
+const (
+	// Default password generation parameters
+	DefaultWordCount     = 3
+	MinWordCount         = 1
+	MaxWordCount         = 6
+	MinWordLength        = 3
+	DefaultDelimiter     = "-"
+	DefaultPasswordCount = 1
 )
 
 // Version is set at build time via -ldflags
@@ -30,12 +40,12 @@ func ParseFlags() Settings {
 	flag.UintVar(&settings.MaxLength, "m", 0, "maximum length of each word component")
 	flag.BoolVar(&settings.ShowInfo, "i", false, "show entropy and estimated time to crack")
 	flag.StringVar(&settings.Delimiter, "d", "-", "delimiter between password components")
-	flag.IntVar(&settings.WordCount, "w", 3, "number of words (1-6)")
+	flag.IntVar(&settings.WordCount, "w", DefaultWordCount, "number of words (1-6)")
 	flag.StringVar(&settings.Profile, "profile", "standard", "attack profile (legacy, weak, standard, strong, paranoid, online)")
 	flag.BoolVar(&settings.ListProfiles, "list-profiles", false, "show available attack profiles")
 	flag.BoolVar(&settings.AllProfiles, "all-profiles", false, "show entropy for all attack profiles")
 	flag.Float64Var(&settings.CustomSpeed, "custom-speed", 0, "custom attack speed (guesses per second)")
-	flag.IntVar(&settings.Count, "n", 1, "number of passwords to generate")
+	flag.IntVar(&settings.Count, "n", DefaultPasswordCount, "number of passwords to generate")
 	flag.BoolVar(&settings.ShowVersion, "version", false, "show version information")
 	flag.BoolVar(&settings.ShowVersion, "V", false, "show version information (short form)")
 
@@ -65,22 +75,22 @@ func main() {
 	}
 
 	if settings.ListProfiles {
-		listAllProfiles()
+		ListAllProfiles()
 		return
 	}
 
-	if settings.MaxLength > 0 && settings.MaxLength < 3 {
-		fmt.Fprintln(os.Stderr, "maxlen must be at least 3")
+	if settings.MaxLength > 0 && settings.MaxLength < MinWordLength {
+		fmt.Fprintf(os.Stderr, "maxlen must be at least %d\n", MinWordLength)
 		os.Exit(1)
 	}
 
-	if settings.WordCount < 1 || settings.WordCount > 6 {
-		fmt.Fprintln(os.Stderr, "word count must be between 1 and 6")
+	if settings.WordCount < MinWordCount || settings.WordCount > MaxWordCount {
+		fmt.Fprintf(os.Stderr, "word count must be between %d and %d\n", MinWordCount, MaxWordCount)
 		os.Exit(1)
 	}
 
-	if settings.Count < 1 {
-		fmt.Fprintln(os.Stderr, "count must be at least 1")
+	if settings.Count < DefaultPasswordCount {
+		fmt.Fprintf(os.Stderr, "count must be at least %d\n", DefaultPasswordCount)
 		os.Exit(1)
 	}
 
@@ -90,14 +100,14 @@ func main() {
 	}
 
 	wordFn := func() string {
-		return randomWord(settings.MaxLength)
+		return entropy.RandomWord(settings.MaxLength, words)
 	}
 
 	var lastPassphrase string
 	delimiterRune := rune(settings.Delimiter[0])
 	var smallWords []string
 	if settings.MaxLength > 0 {
-		smallWords = wordlistSubset(settings.MaxLength)
+		smallWords = entropy.WordlistSubset(settings.MaxLength, words)
 	}
 
 	for i := 0; i < settings.Count; i++ {
@@ -105,10 +115,10 @@ func main() {
 		for j := 0; j < settings.WordCount; j++ {
 			parts = append(parts, wordFn())
 		}
-		parts = append(parts, randomAlphaNumericSegment())
+		parts = append(parts, entropy.RandomAlphaNumericSegment(entropy.AlphaNumericSegmentLength))
 
 		totalParts := len(parts)
-		x, err := randomInt(totalParts)
+		x, err := entropy.RandomInt(totalParts)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error generating random index: %v\n", err)
 			os.Exit(1)
@@ -122,153 +132,6 @@ func main() {
 	}
 
 	if settings.ShowInfo || settings.AllProfiles {
-		passphrase := lastPassphrase
-		if settings.AllProfiles {
-			bruteEnt, patternEnt, wordlistEnt := calculateEntropyForProfile(passphrase, delimiterRune, settings.WordCount, AttackProfile{})
-
-			fmt.Fprintf(os.Stderr, "Password entropy analysis:\n")
-			fmt.Fprintf(os.Stderr, "  Brute-force:          %5.1f bits\n", bruteEnt)
-			fmt.Fprintf(os.Stderr, "  Pattern-aware attack: %5.1f bits\n", patternEnt)
-			fmt.Fprintf(os.Stderr, "  Known wordlist:       %5.1f bits\n", wordlistEnt)
-			if settings.MaxLength > 0 {
-				wordlistEntWithSize := wordlistEntropy(passphrase, delimiterRune, len(smallWords), settings.WordCount)
-				fmt.Fprintf(os.Stderr, "  Known wordlist+params:%5.1f bits\n", wordlistEntWithSize)
-			}
-			fmt.Fprintln(os.Stderr, "")
-
-			fmt.Fprintf(os.Stderr, "Time to crack estimates by attack scenario:\n")
-			fmt.Fprintf(os.Stderr, "%-10s %-18s %-18s %-18s", "Profile", "Brute-force", "Pattern-aware", "Wordlist")
-			if settings.MaxLength > 0 {
-				fmt.Fprintf(os.Stderr, " %-18s", "Wordlist+params")
-			}
-			fmt.Fprintln(os.Stderr, "")
-			fmt.Fprintf(os.Stderr, "%-10s %-18s %-18s %-18s", "-------", "------------------", "------------------", "------------------")
-			if settings.MaxLength > 0 {
-				fmt.Fprintf(os.Stderr, " %-18s", "------------------")
-			}
-			fmt.Fprintln(os.Stderr, "")
-
-			for _, profileName := range []string{"online", "paranoid", "strong", "standard", "weak", "legacy"} {
-				profile := attackProfiles[profileName]
-				fmt.Fprintf(os.Stderr, "%-10s %-18s %-18s %-18s",
-					profile.Name,
-					estimateTimeToCrack(bruteEnt, profile.Speed),
-					estimateTimeToCrack(patternEnt, profile.Speed),
-					estimateTimeToCrack(wordlistEnt, profile.Speed))
-				if settings.MaxLength > 0 {
-					wordlistEntWithSize := wordlistEntropy(passphrase, delimiterRune, len(smallWords), settings.WordCount)
-					fmt.Fprintf(os.Stderr, " %-18s", estimateTimeToCrack(wordlistEntWithSize, profile.Speed))
-				}
-				fmt.Fprintln(os.Stderr, "")
-			}
-		} else {
-			var speed float64
-			var profileDesc string
-
-			if settings.CustomSpeed > 0 {
-				speed = settings.CustomSpeed
-				profileDesc = fmt.Sprintf("custom speed (%.0e guesses/sec)", speed)
-			} else {
-				profile, exists := getProfile(settings.Profile)
-				if !exists {
-					fmt.Fprintf(os.Stderr, "Unknown profile: %s\n", settings.Profile)
-					fmt.Fprintln(os.Stderr, "Use --list-profiles to see available profiles")
-					os.Exit(1)
-				}
-				speed = profile.Speed
-				profileDesc = profile.Description
-			}
-
-			bruteEnt, patternEnt, wordlistEnt := calculateEntropyForProfile(passphrase, delimiterRune, settings.WordCount, AttackProfile{Speed: speed})
-
-			fmt.Fprintf(os.Stderr, "Entropy and estimated time to crack using %s:\n", profileDesc)
-			fmt.Fprintf(os.Stderr, "* Brute-force:           %5.1f bits (%s)\n", bruteEnt, estimateTimeToCrack(bruteEnt, speed))
-			fmt.Fprintf(os.Stderr, "* Pattern-aware attack:  %5.1f bits (%s)\n", patternEnt, estimateTimeToCrack(patternEnt, speed))
-			fmt.Fprintf(os.Stderr, "* Known wordlist:        %5.1f bits (%s)\n", wordlistEnt, estimateTimeToCrack(wordlistEnt, speed))
-			if settings.MaxLength > 0 {
-				wordlistEntWithSize := wordlistEntropy(passphrase, delimiterRune, len(smallWords), settings.WordCount)
-				fmt.Fprintf(os.Stderr, "* Known wordlist and parameters (-m=%d): %5.1f bits (%s)\n", settings.MaxLength, wordlistEntWithSize, estimateTimeToCrack(wordlistEntWithSize, speed))
-			}
-		}
-	}
-}
-
-func randomInt(max int) (int64, error) {
-	if max == 0 {
-		return 0, nil
-	}
-	nBig, err := rand.Int(rand.Reader, big.NewInt(int64(max)))
-	if err != nil {
-		return 0, fmt.Errorf("failed to generate random integer: %w", err)
-	}
-	return nBig.Int64(), nil
-}
-
-func wordlistSubset(maxLength uint) []string {
-	var wordlist []string
-	for _, word := range words {
-		if uint(len(word)) <= maxLength {
-			wordlist = append(wordlist, word)
-		}
-	}
-	return wordlist
-}
-
-func randomWord(maxLength uint) string {
-	numWords := len(words)
-	idx, err := randomInt(numWords)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error generating random word index: %v\n", err)
-		os.Exit(1)
-	}
-	word := words[idx]
-	if maxLength > 0 {
-		for uint(len(word)) > maxLength {
-			idx, err := randomInt(numWords)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error generating random word index: %v\n", err)
-				os.Exit(1)
-			}
-			word = words[idx]
-		}
-	}
-	return word
-}
-
-func randomAlphaNumericSegment() string {
-	const (
-		alphanumericChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	)
-
-	var sb strings.Builder
-	sb.Grow(3) // Pre-allocate capacity for 3 characters
-
-	var hasChar, hasNum bool
-
-	for {
-		sb.Reset() // Clear the builder for a new attempt
-		hasChar = false
-		hasNum = false
-
-		for i := 0; i < 3; i++ {
-			// Generate a random index for the alphanumeric character set
-			idx, err := rand.Int(rand.Reader, big.NewInt(int64(len(alphanumericChars))))
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error generating random index for alphanumeric character: %v\n", err)
-				os.Exit(1)
-			}
-			char := alphanumericChars[idx.Int64()]
-			sb.WriteByte(char)
-
-			if char >= '0' && char <= '9' {
-				hasNum = true
-			} else {
-				hasChar = true
-			}
-		}
-
-		if hasChar && hasNum {
-			return sb.String()
-		}
+		entropy.DisplayEntropyInfo(lastPassphrase, delimiterRune, settings.WordCount, settings.MaxLength, smallWords, settings.AllProfiles, settings.CustomSpeed, settings.Profile, words)
 	}
 }

@@ -1,4 +1,4 @@
-package main
+package entropy
 
 import (
 	"crypto/rand"
@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"os"
 	"strings"
-	// Added for os.Exit
 )
 
 const (
@@ -17,9 +16,10 @@ const (
 	Digits         = 10
 	Symbols        = 32 // Assuming 32 common symbols for simplicity
 	WordChars      = 26 // Assuming 26 possible characters for words
+)
 
-	// Alphanumeric segment length
-	AlphaNumericSegmentLength = 3
+const (
+	AlphaNumericSegmentLength = 3 // This constant was moved from main.go
 )
 
 type AttackProfile struct {
@@ -61,14 +61,14 @@ var attackProfiles = map[string]AttackProfile{
 	},
 }
 
-// bruteForceEntropy calculates the entropy of a password based on the number of
+// bruteForceEntropy calculates the entropy of a passphrase based on the number of
 // characters and character classes used
-func BruteforceEntropy(password string) float64 {
+func BruteforceEntropy(passphrase string) float64 {
 	lowercase := false
 	uppercase := false
 	digits := false
 	symbols := false
-	for _, c := range password {
+	for _, c := range passphrase {
 		switch {
 		case c >= 'a' && c <= 'z':
 			lowercase = true
@@ -83,26 +83,25 @@ func BruteforceEntropy(password string) float64 {
 
 	characters := 0
 	if lowercase {
-		characters += 26 // Lowercase letters (a-z)
+		characters += LowercaseChars
 	}
 	if uppercase {
-		characters += 26 // Uppercase letters (A-Z)
+		characters += UppercaseChars
 	}
 	if digits {
-		characters += 10 // Digits (0-9)
+		characters += Digits
 	}
 	if symbols {
-		characters += 32 // Common symbols
+		characters += Symbols
 	}
 
-	return float64(len(password)) * math.Log2(float64(characters))
+	return float64(len(passphrase)) * math.Log2(float64(characters))
 }
 
-// wordlistEntropy calculates the entropy of a password based on wordlist size
-func WordlistEntropy(password string, separator rune, wordlistSize int, wordCount int) float64 {
+// wordlistEntropy calculates the entropy of a passphrase based on wordlist size
+func WordlistEntropy(passphrase string, separator rune, wordlistSize int, wordCount int) float64 {
 	wordsEnt := float64(wordCount) * math.Log2(float64(wordlistSize))
 
-	// Entropy of 3-character alphanumeric segment that must contain both letters and numbers
 	// Entropy of 3-character alphanumeric segment that must contain both letters and numbers
 	// Calculated as log2(36^3 - 26^3 - 10^3) = log2(46656 - 17576 - 1000) = log2(28080) ≈ 14.45
 	alphanumericEnt := math.Log2(math.Pow(36, AlphaNumericSegmentLength) - math.Pow(26, AlphaNumericSegmentLength) - math.Pow(10, AlphaNumericSegmentLength))
@@ -115,8 +114,8 @@ func WordlistEntropy(password string, separator rune, wordlistSize int, wordCoun
 
 // patternAwareEntropy calculates entropy assuming attacker knows the pattern
 // but not the exact wordlist - they must brute-force the word characters
-func PatternAwareEntropy(password string, separator rune, wordCount int) float64 {
-	parts := strings.Split(password, string(separator))
+func PatternAwareEntropy(passphrase string, separator rune, wordCount int) float64 {
+	parts := strings.Split(passphrase, string(separator))
 
 	wordsEnt := 0.0
 
@@ -146,10 +145,10 @@ func PatternAwareEntropy(password string, separator rune, wordCount int) float64
 	return wordsEnt + alphanumericEnt + positionalEnt
 }
 
-// estimateTimeToCrack estimates the time it would take to crack a password
-// based on the entropy and attack speed (assumes finding password at 50% of search space)
+// estimateTimeToCrack estimates the time it would take to crack a passphrase
+// based on the entropy and attack speed (assumes finding passphrase at 50% of search space)
 func EstimateTimeToCrack(entropy float64, guessesPerSecond float64) string {
-	guesses := math.Pow(2, entropy) / 2 // Average case: find password halfway through search space
+	guesses := math.Pow(2, entropy) / 2 // Average case: find passphrase halfway through search space
 	seconds := guesses / guessesPerSecond
 
 	// Convert to years for easier comparison
@@ -200,10 +199,10 @@ func ListAllProfiles() {
 	}
 }
 
-func CalculateEntropyForProfile(password string, delimiter rune, wordCount int, profile AttackProfile) (float64, float64, float64) {
-	bruteEnt := BruteforceEntropy(password)
-	patternEnt := PatternAwareEntropy(password, delimiter, wordCount)
-	wordlistEnt := WordlistEntropy(password, delimiter, len(words), wordCount)
+func CalculateEntropyForProfile(passphrase string, delimiter rune, wordCount int, profile AttackProfile, words []string) (float64, float64, float64) {
+	bruteEnt := BruteforceEntropy(passphrase)
+	patternEnt := PatternAwareEntropy(passphrase, delimiter, wordCount)
+	wordlistEnt := WordlistEntropy(passphrase, delimiter, len(words), wordCount)
 	return bruteEnt, patternEnt, wordlistEnt
 }
 
@@ -218,7 +217,7 @@ func RandomInt(max int) (int64, error) {
 	return nBig.Int64(), nil
 }
 
-func WordlistSubset(maxLength uint) []string {
+func WordlistSubset(maxLength uint, words []string) []string {
 	var wordlist []string
 	for _, word := range words {
 		if uint(len(word)) <= maxLength {
@@ -228,7 +227,7 @@ func WordlistSubset(maxLength uint) []string {
 	return wordlist
 }
 
-func RandomWord(maxLength uint) string {
+func RandomWord(maxLength uint, words []string) string {
 	numWords := len(words)
 	idx, err := RandomInt(numWords)
 	if err != nil {
@@ -283,6 +282,75 @@ func RandomAlphaNumericSegment(length int) string {
 
 		if hasChar && hasNum {
 			return sb.String()
+		}
+	}
+}
+
+func DisplayEntropyInfo(passphrase string, delimiterRune rune, wordCount int, maxLength uint, smallWords []string, allProfiles bool, customSpeed float64, profileName string, words []string) {
+	if allProfiles {
+		bruteEnt, patternEnt, wordlistEnt := CalculateEntropyForProfile(passphrase, delimiterRune, wordCount, AttackProfile{}, words)
+
+		fmt.Fprintf(os.Stderr, "Passphrase entropy analysis:\n")
+		fmt.Fprintf(os.Stderr, "  Brute-force:          %5.1f bits\n", bruteEnt)
+		fmt.Fprintf(os.Stderr, "  Pattern-aware attack: %5.1f bits\n", patternEnt)
+		fmt.Fprintf(os.Stderr, "  Known wordlist:       %5.1f bits\n", wordlistEnt)
+		if maxLength > 0 {
+			wordlistEntWithSize := WordlistEntropy(passphrase, delimiterRune, len(smallWords), wordCount)
+			fmt.Fprintf(os.Stderr, "  Known wordlist+params:%5.1f bits\n", wordlistEntWithSize)
+		}
+		fmt.Fprintln(os.Stderr, "")
+
+		fmt.Fprintf(os.Stderr, "Time to crack estimates by attack scenario:\n")
+		fmt.Fprintf(os.Stderr, "%-10s %-18s %-18s %-18s", "Profile", "Brute-force", "Pattern-aware", "Wordlist")
+		if maxLength > 0 {
+			fmt.Fprintf(os.Stderr, " %-18s", "Wordlist+params")
+		}
+		fmt.Fprintln(os.Stderr, "")
+		fmt.Fprintf(os.Stderr, "%-10s %-18s %-18s %-18s", "-------", "------------------", "------------------", "------------------")
+		if maxLength > 0 {
+			fmt.Fprintf(os.Stderr, " %-18s", "------------------")
+		}
+		fmt.Fprintln(os.Stderr, "")
+
+		for _, pName := range []string{"online", "paranoid", "strong", "standard", "weak", "legacy"} {
+			profile := attackProfiles[pName]
+			fmt.Fprintf(os.Stderr, "%-10s %-18s %-18s %-18s",
+				profile.Name,
+				EstimateTimeToCrack(bruteEnt, profile.Speed),
+				EstimateTimeToCrack(patternEnt, profile.Speed),
+				EstimateTimeToCrack(wordlistEnt, profile.Speed))
+			if maxLength > 0 {
+				wordlistEntWithSize := WordlistEntropy(passphrase, delimiterRune, len(smallWords), wordCount)
+				fmt.Fprintf(os.Stderr, " %-18s", EstimateTimeToCrack(wordlistEntWithSize, profile.Speed))
+			}
+			fmt.Fprintln(os.Stderr, "")
+		}
+	} else {
+		var speed float64
+		var profileDesc string
+
+		if customSpeed > 0 {
+			speed = customSpeed
+			profileDesc = fmt.Sprintf("custom speed (%.0e guesses/sec)", speed)
+		} else {
+			profile, exists := GetProfile(profileName)
+			if !exists {
+				fmt.Fprintf(os.Stderr, "Unknown profile: %s\n", profileName)
+				fmt.Fprintln(os.Stderr, "Use --list-profiles to see available profiles")
+				os.Exit(1)
+			}
+			speed = profile.Speed
+			profileDesc = profile.Description
+		}
+		bruteEnt, patternEnt, wordlistEnt := CalculateEntropyForProfile(passphrase, delimiterRune, wordCount, AttackProfile{Speed: speed}, words)
+
+		fmt.Fprintf(os.Stderr, "Entropy and estimated time to crack using %s:\n", profileDesc)
+		fmt.Fprintf(os.Stderr, "* Brute-force:           %5.1f bits (%s)\n", bruteEnt, EstimateTimeToCrack(bruteEnt, speed))
+		fmt.Fprintf(os.Stderr, "* Pattern-aware attack:  %5.1f bits (%s)\n", patternEnt, EstimateTimeToCrack(patternEnt, speed))
+		fmt.Fprintf(os.Stderr, "* Known wordlist:        %5.1f bits (%s)\n", wordlistEnt, EstimateTimeToCrack(wordlistEnt, speed))
+		if maxLength > 0 {
+			wordlistEntWithSize := WordlistEntropy(passphrase, delimiterRune, len(smallWords), wordCount)
+			fmt.Fprintf(os.Stderr, "* Known wordlist and parameters (-m=%d): %5.1f bits (%s)\n", maxLength, wordlistEntWithSize, EstimateTimeToCrack(wordlistEntWithSize, speed))
 		}
 	}
 }

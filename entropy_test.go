@@ -17,8 +17,8 @@ func TestBruteforceEntropy(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		if got := bruteforceEntropy(tt.password); got != tt.want {
-			t.Errorf("bruteforceEntropy(%q) = %v, want %v", tt.password, got, tt.want)
+		if got := BruteforceEntropy(tt.password); got != tt.want {
+			t.Errorf("BruteforceEntropy(%q) = %v, want %v", tt.password, got, tt.want)
 		}
 	}
 }
@@ -31,29 +31,29 @@ func TestWordlistEntropy(t *testing.T) {
 		wordCount    int
 		want         float64
 	}{
-		{"a-b-c-123", '-', 91000, 3, 66.92073677458234},
-		{"a.b.c.123", '.', 91000, 3, 66.92073677458234},
+		{"a-b-c-123", '-', 91000, 3, 66.19799208977426},
+		{"a.b.c.123", '.', 91000, 3, 66.19799208977426},
 	}
 
 	for _, tt := range tests {
-		if got := wordlistEntropy(tt.password, tt.separator, tt.wordlistSize, tt.wordCount); got != tt.want {
-			t.Errorf("wordlistEntropy(%q, %q, %d, %d) = %v, want %v", tt.password, string(tt.separator), tt.wordlistSize, tt.wordCount, got, tt.want)
+		if got := WordlistEntropy(tt.password, tt.separator, tt.wordlistSize, tt.wordCount); got != tt.want {
+			t.Errorf("WordlistEntropy(%q, %q, %d, %d) = %v, want %v", tt.password, string(tt.separator), tt.wordlistSize, tt.wordCount, got, tt.want)
 		}
 	}
 }
 
 func TestRandomWord(t *testing.T) {
 	maxLength := uint(7)
-	word := randomWord(maxLength)
+	word := RandomWord(maxLength)
 	if len(word) > int(maxLength) {
-		t.Errorf("randomWord(%d) = %q, want length <= %d", maxLength, word, maxLength)
+		t.Errorf("RandomWord(%d) = %q, want length <= %d", maxLength, word, maxLength)
 	}
 }
 
 func TestRandomAlphaNumericSegment(t *testing.T) {
-	segment := randomAlphaNumericSegment()
+	segment := RandomAlphaNumericSegment(3)
 	if len(segment) != 3 {
-		t.Errorf("randomAlphaNumericSegment() = %q, want length == 3", segment)
+		t.Errorf("RandomAlphaNumericSegment() = %q, want length == %d", segment, 3)
 	}
 	var hasChar, hasNum bool
 	for _, c := range segment {
