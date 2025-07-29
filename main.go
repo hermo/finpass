@@ -104,7 +104,11 @@ func main() {
 		parts = append(parts, randomAlphaNumericSegment())
 
 		totalParts := len(parts)
-		x := randomInt(totalParts)
+		x, err := randomInt(totalParts)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error generating random index: %v\n", err)
+			os.Exit(1)
+		}
 		parts[x], parts[totalParts-1] = parts[totalParts-1], parts[x]
 
 		passphrase := strings.Join(parts, settings.Delimiter)
@@ -188,24 +192,27 @@ func main() {
 	}
 }
 
-func randomInt(max int) int64 {
-	n, err := rand.Int(rand.Reader, big.NewInt(int64(max)))
-	if err != nil {
-		panic(err)
+func randomInt(max int) (int64, error) {
+	if max == 0 {
+		return 0, nil
 	}
-	return n.Int64()
+	nBig, err := rand.Int(rand.Reader, big.NewInt(int64(max)))
+	if err != nil {
+		return 0, fmt.Errorf("failed to generate random integer: %w", err)
+	}
+	return nBig.Int64(), nil
 }
 
-func randomByte() byte {
+func randomByte() (byte, error) {
 	var b [1]byte
 	n, err := rand.Read(b[:])
 	if err != nil {
-		panic(err)
+		return 0, fmt.Errorf("failed to read random byte: %w", err)
 	}
 	if n != 1 {
-		panic("expected to read 1 byte")
+		return 0, fmt.Errorf("expected to read 1 byte, but read %d", n)
 	}
-	return b[0]
+	return b[0], nil
 }
 
 func wordlistSubset(maxLength uint) []string {
@@ -220,10 +227,20 @@ func wordlistSubset(maxLength uint) []string {
 
 func randomWord(maxLength uint) string {
 	numWords := len(words)
-	word := words[randomInt(numWords)]
+	idx, err := randomInt(numWords)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error generating random word index: %v\n", err)
+		os.Exit(1)
+	}
+	word := words[idx]
 	if maxLength > 0 {
 		for uint(len(word)) > maxLength {
-			word = words[randomInt(numWords)]
+			idx, err := randomInt(numWords)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error generating random word index: %v\n", err)
+				os.Exit(1)
+			}
+			word = words[idx]
 		}
 	}
 	return word
@@ -238,7 +255,11 @@ func randomAlphaNumericSegment() string {
 		hasNum = false
 		segment = ""
 		for i := 0; i < 3; i++ {
-			c := randomByte()
+			c, err := randomByte()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error generating random byte: %v\n", err)
+				os.Exit(1)
+			}
 			if c >= '0' && c <= '9' {
 				hasNum = true
 				segment += string(c)
