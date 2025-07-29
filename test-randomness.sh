@@ -130,7 +130,7 @@ echo "Duplicate passwords: $DUPES (should be 0)"
 
 
 echo "Step 7: Wordlist coverage analysis..."
-TOTAL_WORDLIST_SIZE=$(grep -E '\w+"' words.go | wc -l)
+TOTAL_WORDLIST_SIZE=$(wc -l < words.txt)
 WORDS_USED=$(wc -l < word_frequencies.txt)
 COVERAGE=$(echo "scale=2; $WORDS_USED * 100 / $TOTAL_WORDLIST_SIZE" | bc)
 
@@ -162,11 +162,6 @@ else:
 
 # Cleanup
 rm -f word_frequencies.txt segment_frequencies.txt word_positions.txt
-read -p "Delete test files? (y/N): " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    rm -f $OUTPUT_FILE $ENTROPY_FILE
-    echo "Test files deleted."
-fi
+rm -f $OUTPUT_FILE $ENTROPY_FILE
 
 
