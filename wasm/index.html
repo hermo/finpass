@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Finnish password generator</title>
+</head>
+<body>
+    <h1>Finnish password generator</h1>
+    <label for="word-count">Number of words:</label>
+    <select id="word-count">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3" selected>3</option>
+        <option value="4">4</option>
+    </select>
+    <br>
+    <label for="max-length">Max word length:</label>
+    <select id="max-length">
+        <option value="0">Unlimited</option>
+        <option value="4">4</option>
+        <option value="6">6</option>
+        <option value="8">8</option>
+    </select>
+    <br>
+    <label for="separator">Separator:</label>
+    <select id="separator">
+        <option value=".">.</option>
+        <option value="-">-</option>
+        <option value="_">_</option>
+        <option value=" ">Space</option>
+    </select>
+    <br>
+    <p>Password: <b id="password"></b> <button id="copy">Copy</button></p>
+
+    <button id="regen">♻️ Regenerate</button>
+    <hr>
+    <h3>Entropy Analysis</h3>
+    <pre id="entropy-info"></pre>
+
+    <script src="wasm_exec.js"></script>
+    <script>
+        const go = new Go();
+        WebAssembly.instantiateStreaming(fetch("finpass.wasm"), go.importObject).then((result) => {
+            go.run(result.instance);
+            generateAndUpdate();
+        });
+
+        const wordCountInput = document.getElementById("word-count");
+        const maxLengthInput = document.getElementById("max-length");
+        const separatorInput = document.getElementById("separator");
+        const passwordEl = document.getElementById("password");
+        const entropyInfoEl = document.getElementById("entropy-info");
+        const copyButton = document.getElementById("copy");
+        const regenButton = document.getElementById("regen");
+
+        function generateAndUpdate() {
+            const wordCount = parseInt(wordCountInput.value);
+            const maxLength = parseInt(maxLengthInput.value);
+            const separator = separatorInput.value;
+            const password = generatePassword(wordCount, maxLength, separator);
+            passwordEl.innerText = password;
+
+            const entropyInfo = getEntropyInfo(password, wordCount, maxLength);
+            entropyInfoEl.innerText = entropyInfo;
+        }
+
+        wordCountInput.addEventListener("input", generateAndUpdate);
+        maxLengthInput.addEventListener("change", generateAndUpdate);
+        separatorInput.addEventListener("change", generateAndUpdate);
+        regenButton.addEventListener("click", generateAndUpdate);
+
+        copyButton.addEventListener("click", () => {
+            navigator.clipboard.writeText(passwordEl.innerText).then(() => {
+                // Optional: give user feedback
+                const originalText = copyButton.innerText;
+                copyButton.innerText = "Copied!";
+                setTimeout(() => {
+                    copyButton.innerText = originalText;
+                }, 1000);
+            });
+        });
+    </script>
+</body>
+</html>

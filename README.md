@@ -1,23 +1,53 @@
-# Generate passphrases using Finnish language words
+# finpass: Finnish Passphrase Generator (CLI and WASM)
 
-This tiny program generates somewhat memorable passphrases in Finnish.
+This project provides a tool to generate memorable passphrases using Finnish language words. It is available as both a command-line interface (CLI) and a WebAssembly (WASM) module for direct use in a browser.
+
 Each generated password also includes a randomly placed 3-character alphanumeric section to add entropy.
 
-## Flags
+## Usage
 
-| Flag              | Description                                                    |
-|-------------------|----------------------------------------------------------------|
-| `-i`              | Show entropy and estimated time to crack                      |
-| `-m MAXLEN`       | Maximum length of each word component                         |
-| `-d DELIM`        | Specify delimiter (default is `-`)                           |
-| `-w COUNT`        | Number of words (1-6, default is 3)                          |
-| `-n COUNT`        | Number of passphrases to generate (default is 1)               |
-| `-profile NAME`   | Attack profile for entropy calculation (default is `standard`) |
-| `-list-profiles`  | Show available attack profiles                                |
-| `-all-profiles`   | Show entropy for all attack profiles                         |
-| `-custom-speed N` | Custom attack speed (guesses per second)                     |
+### Web Interface
 
-### Attack Profiles
+To use the web interface, build the WASM module and start the local server:
+
+```bash
+make serve
+```
+
+Then open [http://localhost:8000](http://localhost:8000) in your browser.
+
+### Command-Line Interface (CLI)
+
+#### Flags
+
+The command-line tool supports the following flags:
+
+| Flag | Description | Default |
+|---|---|---|
+| `-n COUNT` | Number of words to generate | `3` |
+| `-m MAXLEN` | Maximum length of each word component | `0` (unlimited) |
+| `-d DELIM` | Specify delimiter | `.` |
+| `-e` | Show entropy information (default on) | |
+| `-E` | Do not show entropy information | |
+| `-p NAME` | Attack profile for entropy calculation | `strong` |
+| `-l` | List all available attack profiles | |
+| `-a` | Show entropy for all attack profiles | |
+| `-s N` | Custom attack speed (guesses per second) | |
+| `-v` | Print version and exit | |
+
+#### Example
+
+```
+$ finpass -n 4 -m 7 -d . -p strong
+36C.kytkea.terkut.koukuta
+Entropy and estimated time to crack using Security-focused apps (bcrypt):
+* Brute-force:           154.2 bits (1e46y)
+* Pattern-aware attack:   66.5 bits (170ky)
+* Known wordlist:         58.6 bits (7y)
+* Known wordlist and parameters (-m=7): 50.1 bits (3d)
+```
+
+## Attack Profiles
 
 Available profiles for entropy calculation:
 - `legacy` - Weak legacy hashes (NTLM)
@@ -27,23 +57,11 @@ Available profiles for entropy calculation:
 - `paranoid` - Maximum security (scrypt)
 - `online` - Rate-limited online attacks
 
-Example:
-
-```
-$ finpass -i -m 7 -d . -w 4 -profile strong
-36C.kytkea.terkut.koukuta
-Entropy and estimated time to crack using Security-focused apps (bcrypt):
-* Brute-force:           154.2 bits (1e46y)
-* Pattern-aware attack:   66.5 bits (170ky)
-* Known wordlist:         58.6 bits (7y)
-* Known wordlist and parameters (-m=7): 50.1 bits (3d)
-```
-
 The wordlist contains about 91k words and is a subset of the wordlist found at https://github.com/hugovk/everyfinnishword
 
 ## Installation
 
-Pre-built releases exist for Linux, macOS and Windows on amd64/arm64 platforms. See the releases for details.
+Pre-built releases for the CLI exist for Linux, macOS and Windows on amd64/arm64 platforms. See the releases for details.
 
 ## Randomness Testing
 
@@ -75,23 +93,34 @@ Run [`test-randomness.sh`](test-randomness.sh) to perform your own randomness an
 ## Building from Source
 
 ### Prerequisites
-- Go 1.21 or later
-- The compressed wordlist file (`words.txt.gz`) must be present
+- Go 1.22 or later
+- Make
 
 ### Build Instructions
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/hermo/finpass.git
-   cd finpass
-   ```
+The provided `Makefile` simplifies the build process.
 
-2. Build the optimized binary:
-   ```bash
-   go build -ldflags="-s -w" -o finpass
-   ```
+*   **Build CLI:**
+    ```bash
+    make cli
+    ```
+    This will create the `finpass` binary in the root directory.
 
-**Note**: The compressed wordlist file `words.txt.gz` is committed to the repository and embedded during build. No additional steps are needed.
+*   **Build WASM:**
+    ```bash
+    make wasm
+    ```
+    This will create `finpass.wasm` and `wasm_exec.js` in the `wasm/` directory.
+
+*   **Test:**
+    ```bash
+    make test
+    ```
+
+*   **Clean build artifacts:**
+    ```bash
+    make clean
+    ```
 
 ### Build Details
 
@@ -103,40 +132,25 @@ The binary uses an embedded compressed wordlist for optimal size:
 
 The wordlist is automatically decompressed at startup using `//go:embed` and gzip compression.
 
-### Development
-
-For development builds without optimization:
-```bash
-go build
-```
-
-For release builds with full optimization:
-```bash
-go build -ldflags="-s -w -X main.version=$(git describe --tags)"
-```
-
 ### Updating the Wordlist
 
 If you need to update the Finnish wordlist:
 
-1. **Replace the source wordlist**:
-   ```bash
-   # Replace words.txt with your new wordlist (one word per line)
-   # Example: download from https://github.com/hugovk/everyfinnishword
-   ```
+1.  **Replace the source wordlist**:
+    The wordlist files are located in the `internal/` directory.
+    ```bash
+    # Replace internal/words.txt with your new wordlist (one word per line)
+    # Example: download from https://github.com/hugovk/everyfinnishword
+    ```
 
-2. **Regenerate the compressed wordlist**:
-   ```bash
-   gzip -9 -c words.txt > words.txt.gz
-   ```
+2.  **Regenerate the compressed wordlist**:
+    ```bash
+    gzip -9 -c internal/words.txt > internal/words.txt.gz
+    ```
 
-3. **Rebuild the binary**:
-   ```bash
-   go build -ldflags="-s -w" -o finpass
-   ```
+3.  **Rebuild the binary**:
+    ```bash
+    make cli
+    ```
 
-**Important**: Both `words.txt.gz` (compressed wordlist) and `words.txt` (source) should be committed to the repository. The `words.txt.gz` file is embedded in the binary during build via `//go:embed`, while `words.txt` serves as the source for regenerating the compressed version when needed.
-
-**File sizes**:
-- `words.txt`: ~1.1MB (91,443 words, human-readable source)
-- `words.txt.gz`: ~321KB (compressed, embedded in binary)
+**Important**: Both `internal/words.txt.gz` (compressed wordlist) and `internal/words.txt` (source) should be committed to the repository. The `words.txt.gz` file is embedded in the binary during build via `//go:embed`, while `words.txt` serves as the source for regenerating the compressed version when needed.

@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"bufio"
@@ -11,7 +11,7 @@ import (
 //go:embed words.txt.gz
 var compressedWords []byte
 
-var words []string
+var Words []string
 
 func init() {
 	// Decompress the wordlist at startup
@@ -25,7 +25,7 @@ func init() {
 	for scanner.Scan() {
 		word := strings.TrimSpace(scanner.Text())
 		if word != "" {
-			words = append(words, word)
+			Words = append(Words, word)
 		}
 	}
 
