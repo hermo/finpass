@@ -1,11 +1,8 @@
-.PHONY: cli wasm test serve clean
-
-cli:
-	go build -o finpass ./cmd/finpass
+.PHONY: wasm test serve clean
 
 wasm:
 	GOTOOLCHAIN=local GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o wasm/finpass.wasm ./wasm
-	cp "$$(go env GOROOT)/misc/wasm/wasm_exec.js" ./wasm/
+	cp "$$(go env GOROOT)/lib/wasm/wasm_exec.js" ./wasm/
 
 test:
 	go test ./...
