@@ -1,14 +1,52 @@
-# finpass: Finnish Passphrase Generator (CLI and WASM)
+# finpass: Finnish Passphrase Generator
 
-This project provides a tool to generate memorable passphrases using Finnish language words. It is available as both a command-line interface (CLI) and a WebAssembly (WASM) module for direct use in a browser.
+This project provides a tool to generate memorable passphrases using Finnish language words. It is available as:
+- **Command-line interface (CLI)** for terminal use
+- **WebAssembly (WASM)** module for browser use
+- **Vanilla JavaScript** web interface with modern ES modules
 
 Each generated password also includes a randomly placed 3-character alphanumeric section to add entropy.
 
 ## Usage
 
-### Web Interface
+### Vanilla JavaScript Web Interface
 
-To use the web interface, build the WASM module and start the local server:
+The vanilla JavaScript implementation provides a modern, lightweight web interface without requiring any build steps or WASM compilation.
+
+**To run the JavaScript version:**
+
+```bash
+make serve-js
+```
+
+Then open [http://localhost:8080](http://localhost:8080) in your browser.
+
+Alternatively, you can serve the [`js/`](js/) directory with any static HTTP server:
+
+```bash
+# Using Python's built-in HTTP server
+python3 -m http.server 8080 -d js
+
+# Using Node.js http-server
+npx http-server js -p 8080
+```
+
+**Features:**
+- Pure ES modules - no build step required
+- Modern Web Components architecture
+- Bilingual support (English/Finnish)
+- Real-time entropy calculations
+- Responsive design for mobile and desktop
+- Works in all modern browsers with ES module support
+
+**Browser Requirements:**
+- Modern browsers with ES modules support (Chrome 61+, Firefox 60+, Safari 11+, Edge 16+)
+- JavaScript enabled
+- Web Crypto API support for secure random number generation
+
+### WebAssembly Interface
+
+To use the WASM web interface, build the WASM module and start the local server:
 
 ```bash
 make serve

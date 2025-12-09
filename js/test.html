@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finpass JS Tests</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            padding: 2rem;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        h1 {
+            margin-bottom: 2rem;
+            color: #00d4aa;
+        }
+
+        h2 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #00d4aa;
+            font-size: 1.5rem;
+        }
+
+        .test-section {
+            margin-bottom: 2rem;
+            background: #1a1a1a;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .test-result {
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .test-result.pass {
+            background: #1a3a1a;
+            border-left: 4px solid #00d4aa;
+            color: #00d4aa;
+        }
+
+        .test-result.fail {
+            background: #3a1a1a;
+            border-left: 4px solid #ff4444;
+            color: #ff4444;
+        }
+
+        .test-result.info {
+            background: #1a2a3a;
+            border-left: 4px solid #4444ff;
+            color: #88aaff;
+        }
+
+        .summary {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #2a2a2a;
+            border-radius: 8px;
+            font-size: 1.2rem;
+        }
+
+        .summary.all-pass {
+            border: 2px solid #00d4aa;
+        }
+
+        .summary.has-failures {
+            border: 2px solid #ff4444;
+        }
+
+        code {
+            background: #333;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .error-details {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: #2a1a1a;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: #ff8888;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 Finpass JavaScript Tests</h1>
+
+    <div id="test-results"></div>
+
+    <div id="summary" class="summary"></div>
+
+    <script type="module">
+        import { calculateBruteforce, calculatePatternAware, calculateWordlist, calculateEntropy, getStrengthRating } from './lib/entropy-calc.js';
+        import { generatePassphrase } from './lib/passphrase.js';
+        import { getRandomInt } from './lib/crypto.js';
+        import { translations, setLanguage, t } from './lib/i18n.js';
+
+        const results = [];
+        const resultsContainer = document.getElementById('test-results');
+
+        function addTest(name, passed, details = '') {
+            results.push({ name, passed, details });
+            const div = document.createElement('div');
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `${passed ? '✓' : '✗'} ${name}`;
+            if (details) {
+                const detailDiv = document.createElement('div');
+                detailDiv.className = 'error-details';
+                detailDiv.textContent = details;
+                div.appendChild(detailDiv);
+            }
+            resultsContainer.appendChild(div);
+        }
+
+        function addInfo(message) {
+            const div = document.createElement('div');
+            div.className = 'test-result info';
+            div.textContent = `ℹ ${message}`;
+            resultsContainer.appendChild(div);
+        }
+
+        function addSection(title) {
+            const section = document.createElement('div');
+            section.className = 'test-section';
+            const heading = document.createElement('h2');
+            heading.textContent = title;
+            resultsContainer.appendChild(heading);
+            resultsContainer.appendChild(section);
+            return section;
+        }
+
+        async function runTests() {
+            try {
+                // Section 1: Entropy Calculations
+                addSection('Entropy Calculations');
+
+                // Test 1: Bruteforce entropy with known value
+                const testPass1 = 'Hello123!';
+                const bruteforce1 = calculateBruteforce(testPass1);
+                // Should have lowercase, uppercase, digits, symbols = 94 chars
+                // 9 chars * log2(94) ≈ 59.47 bits
+                const expectedBruteforce1 = 9 * Math.log2(94);
+                const bruteforceMatch = Math.abs(bruteforce1 - expectedBruteforce1) < 0.01;
+                addTest(
+                    `Bruteforce entropy calculation (expected ~${expectedBruteforce1.toFixed(2)} bits, got ${bruteforce1.toFixed(2)} bits)`,
+                    bruteforceMatch,
+                    bruteforceMatch ? '' : `Expected ${expectedBruteforce1.toFixed(2)}, got ${bruteforce1.toFixed(2)}`
+                );
+
+                // Test 2: Wordlist entropy calculation
+                const wordlistEntropy = calculateWordlist(4, 7776);
+                // 4 words from 7776 wordlist: 4 * log2(7776) + log2(5) + 14.45
+                // = 4 * 12.925 + 2.32 + 14.45 ≈ 68.47 bits
+                const expectedWordlist = 4 * Math.log2(7776) + Math.log2(5) + Math.log2(28080);
+                const wordlistMatch = Math.abs(wordlistEntropy - expectedWordlist) < 0.01;
+                addTest(
+                    `Wordlist entropy calculation (expected ~${expectedWordlist.toFixed(2)} bits, got ${wordlistEntropy.toFixed(2)} bits)`,
+                    wordlistMatch,
+                    wordlistMatch ? '' : `Expected ${expectedWordlist.toFixed(2)}, got ${wordlistEntropy.toFixed(2)}`
+                );
+
+                // Test 3: Strength ratings
+                addTest('Strength rating: weak (40 bits)', getStrengthRating(40) === 'weak');
+                addTest('Strength rating: fair (70 bits)', getStrengthRating(70) === 'fair');
+                addTest('Strength rating: good (90 bits)', getStrengthRating(90) === 'good');
+                addTest('Strength rating: strong (110 bits)', getStrengthRating(110) === 'strong');
+                addTest('Strength rating: excellent (150 bits)', getStrengthRating(150) === 'excellent');
+
+                // Section 2: Wordlist Loading
+                addSection('Wordlist Loading');
+
+                // Load wordlist
+                const response = await fetch('./words.txt');
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch wordlist: ${response.status}`);
+                }
+                const text = await response.text();
+                const wordlist = text.split('\n').map(word => word.trim()).filter(word => word.length > 0);
+                addTest('Wordlist loaded successfully', wordlist && wordlist.length > 0);
+                addTest('Wordlist has expected size (7776 words)', wordlist.length === 7776);
+                addTest('Wordlist contains valid words',
+                    wordlist.every(word => word && typeof word === 'string' && word.length > 0)
+                );
+                addInfo(`Loaded ${wordlist.length} words from wordlist`);
+
+                // Section 3: Passphrase Generation
+                addSection('Passphrase Generation');
+
+                const passphrase = generatePassphrase({ wordCount: 4, separator: '-', wordlist });
+                addTest('Passphrase generated successfully', passphrase && passphrase.length > 0);
+                addInfo(`Generated passphrase: "${passphrase}"`);
+
+                // Check format: should have parts separated by '-'
+                const parts = passphrase.split('-');
+                addTest('Passphrase has correct number of parts (5 = 4 words + 1 segment)', parts.length === 5);
+
+                // One part should be exactly 3 characters with both letters and digits
+                let alphanumericFound = false;
+                let alphanumericSegment = '';
+                for (const part of parts) {
+                    if (part.length === 3) {
+                        const hasLetter = /[A-Z]/.test(part);
+                        const hasDigit = /[0-9]/.test(part);
+                        if (hasLetter && hasDigit) {
+                            alphanumericFound = true;
+                            alphanumericSegment = part;
+                            break;
+                        }
+                    }
+                }
+                addTest(
+                    `Passphrase contains alphanumeric segment (3 chars with letters and numbers)`,
+                    alphanumericFound,
+                    alphanumericFound ? `Found: ${alphanumericSegment}` : 'No valid alphanumeric segment found'
+                );
+
+                // Test multiple generation to ensure randomness
+                const passphrases = new Set();
+                for (let i = 0; i < 5; i++) {
+                    passphrases.add(generatePassphrase({ wordCount: 4, separator: '-', wordlist }));
+                }
+                addTest(
+                    'Multiple passphrases are different (randomness check)',
+                    passphrases.size === 5,
+                    passphrases.size === 5 ? '' : `Only ${passphrases.size} unique passphrases generated out of 5`
+                );
+
+                // Section 4: Secure Random Number Generation
+                addSection('Secure Random Number Generation');
+
+                // Test getRandomInt
+                const randomNums = [];
+                for (let i = 0; i < 100; i++) {
+                    randomNums.push(getRandomInt(10));
+                }
+                const allInRange = randomNums.every(n => n >= 0 && n < 10);
+                addTest('Random numbers are in range [0, 10)', allInRange);
+
+                const uniqueNums = new Set(randomNums);
+                addTest(
+                    'Random numbers show variety (at least 5 different values in 100 samples)',
+                    uniqueNums.size >= 5,
+                    `Got ${uniqueNums.size} unique values`
+                );
+
+                // Section 5: Internationalization
+                addSection('Internationalization (i18n)');
+
+                addTest('English translations available', translations.en && Object.keys(translations.en).length > 0);
+                addTest('Finnish translations available', translations.fi && Object.keys(translations.fi).length > 0);
+
+                // Test translation keys
+                const requiredKeys = ['title', 'generate', 'copy', 'copied', 'wordCount', 'separator', 'entropy'];
+                const enHasKeys = requiredKeys.every(key => translations.en[key]);
+                const fiHasKeys = requiredKeys.every(key => translations.fi[key]);
+
+                addTest('English has required translation keys', enHasKeys);
+                addTest('Finnish has required translation keys', fiHasKeys);
+
+                // Test language switching
+                setLanguage('en');
+                const enTitle = t('title');
+                setLanguage('fi');
+                const fiTitle = t('title');
+                addTest(
+                    'Language switching works',
+                    enTitle !== fiTitle && enTitle && fiTitle,
+                    `EN: "${enTitle}", FI: "${fiTitle}"`
+                );
+                addInfo(`English title: "${enTitle}"`);
+                addInfo(`Finnish title: "${fiTitle}"`);
+
+                // Reset to English
+                setLanguage('en');
+
+                // Section 6: Integration Test
+                addSection('Integration Test');
+
+                const integrationPass = generatePassphrase({ wordCount: 5, separator: '_', wordlist });
+                const entropy = calculateEntropy(integrationPass, '_', 5, wordlist.length);
+
+                addTest('Integration: passphrase generated', integrationPass && integrationPass.length > 0);
+                addTest('Integration: entropy calculated', entropy && entropy.wordlist > 0);
+                addTest('Integration: bruteforce entropy > 0', entropy.bruteforce > 0);
+                addTest('Integration: pattern-aware entropy > 0', entropy.patternAware > 0);
+                addTest('Integration: wordlist entropy > 0', entropy.wordlist > 0);
+
+                addInfo(`Integration test passphrase: "${integrationPass}"`);
+                addInfo(`Bruteforce: ${entropy.bruteforce.toFixed(2)} bits`);
+                addInfo(`Pattern-aware: ${entropy.patternAware.toFixed(2)} bits`);
+                addInfo(`Wordlist: ${entropy.wordlist.toFixed(2)} bits`);
+
+                // Summary
+                const passed = results.filter(r => r.passed).length;
+                const failed = results.filter(r => !r.passed).length;
+                const total = results.length;
+
+                const summaryDiv = document.getElementById('summary');
+                summaryDiv.className = `summary ${failed === 0 ? 'all-pass' : 'has-failures'}`;
+                summaryDiv.innerHTML = `
+                    <strong>Test Summary:</strong><br>
+                    ✓ Passed: ${passed}/${total}<br>
+                    ${failed > 0 ? `✗ Failed: ${failed}/${total}<br>` : ''}
+                    ${failed === 0 ? '🎉 All tests passed!' : '⚠️ Some tests failed'}
+                `;
+
+            } catch (error) {
+                addTest('Test suite execution', false, `Error: ${error.message}\n${error.stack}`);
+                console.error('Test error:', error);
+            }
+        }
+
+        // Run tests when page loads
+        runTests();
+    </script>
+</body>
+</html>
