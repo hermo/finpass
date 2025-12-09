@@ -14,6 +14,17 @@
   <!-- Preload critical resources -->
   <link rel="preload" href="./words.txt" as="fetch" crossorigin="anonymous">
 
+  <!-- Preload JS modules to eliminate waterfall loading -->
+  <link rel="modulepreload" href="./components/app.js">
+  <link rel="modulepreload" href="./lib/i18n.js">
+  <link rel="modulepreload" href="./lib/passphrase.js">
+  <link rel="modulepreload" href="./lib/crypto.js">
+  <link rel="modulepreload" href="./lib/entropy-calc.js">
+  <link rel="modulepreload" href="./components/generator.js">
+  <link rel="modulepreload" href="./components/controls.js">
+  <link rel="modulepreload" href="./components/entropy.js">
+  <link rel="modulepreload" href="./components/lang-toggle.js">
+
   <!-- <link rel="manifest" href="./manifest.json"> -->
 
   <!-- <link rel="icon" type="image/svg+xml" href="/favicon.svg"> -->
