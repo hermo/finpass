@@ -1,4 +1,7 @@
-.PHONY: wasm test serve clean
+.PHONY: cli wasm test serve clean
+
+cli: 
+	go build -ldflags="-s -w" -o finpass
 
 wasm:
 	GOTOOLCHAIN=local GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o wasm/finpass.wasm ./wasm
