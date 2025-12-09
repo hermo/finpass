@@ -99,7 +99,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	var lastPassphrase string
 	delimiterRune := rune(settings.Delimiter[0])
 	var smallWords []string
 	if settings.MaxLength > 0 {
@@ -116,6 +115,7 @@ func main() {
 	fmt.Println(passphrase)
 
 	if settings.ShowInfo || settings.AllProfiles {
-		entropy.DisplayEntropyInfo(lastPassphrase, delimiterRune, settings.WordCount, settings.MaxLength, smallWords, settings.AllProfiles, settings.CustomSpeed, settings.Profile, internal.Words)
+		result := entropy.DisplayEntropyInfo(passphrase, delimiterRune, settings.WordCount, settings.MaxLength, smallWords, settings.AllProfiles, settings.CustomSpeed, settings.Profile, internal.Words)
+		fmt.Print(result)
 	}
 }

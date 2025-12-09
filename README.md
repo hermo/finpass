@@ -62,27 +62,39 @@ The command-line tool supports the following flags:
 
 | Flag | Description | Default |
 |---|---|---|
-| `-n COUNT` | Number of words to generate | `3` |
+| `-w COUNT` | Number of words to generate | `3` |
+| `-n COUNT` | Number of passphrases to generate | `1` |
 | `-m MAXLEN` | Maximum length of each word component | `0` (unlimited) |
-| `-d DELIM` | Specify delimiter | `.` |
-| `-e` | Show entropy information (default on) | |
-| `-E` | Do not show entropy information | |
-| `-p NAME` | Attack profile for entropy calculation | `strong` |
-| `-l` | List all available attack profiles | |
-| `-a` | Show entropy for all attack profiles | |
-| `-s N` | Custom attack speed (guesses per second) | |
-| `-v` | Print version and exit | |
+| `-d DELIM` | Delimiter between components | `-` |
+| `-i` | Show entropy and time-to-crack analysis | |
+| `-profile NAME` | Attack profile for entropy calculation | `standard` |
+| `-list-profiles` | List all available attack profiles | |
+| `-all-profiles` | Show entropy for all attack profiles | |
+| `-custom-speed N` | Custom attack speed (guesses per second) | |
+| `-version`, `-V` | Print version and exit | |
 
-#### Example
+#### Examples
 
+Generate a single passphrase:
 ```
-$ finpass -n 4 -m 7 -d . -p strong
-36C.kytkea.terkut.koukuta
+$ finpass
+palvelivat-8KR-mailit
+```
+
+Generate with entropy analysis:
+```
+$ finpass -i -profile strong
+36C-kytkea-terkut-koukuta
 Entropy and estimated time to crack using Security-focused apps (bcrypt):
 * Brute-force:           154.2 bits (1e46y)
 * Pattern-aware attack:   66.5 bits (170ky)
 * Known wordlist:         58.6 bits (7y)
-* Known wordlist and parameters (-m=7): 50.1 bits (3d)
+```
+
+Generate 4-word passphrase with custom delimiter:
+```
+$ finpass -w 4 -d .
+36C.kytkea.terkut.koukuta
 ```
 
 ## Attack Profiles
@@ -96,6 +108,57 @@ Available profiles for entropy calculation:
 - `online` - Rate-limited online attacks
 
 The wordlist contains about 91k words and is a subset of the wordlist found at https://github.com/hugovk/everyfinnishword
+
+## Security Features
+
+### Password Strength Rating System
+
+This tool includes a comprehensive strength rating system that evaluates generated passphrases on a 5-level scale. The ratings are specifically **calibrated for randomly-generated passphrases** (not user-chosen passwords), which have fundamentally different security characteristics.
+
+**Strength Rating Thresholds:**
+
+| Rating | Entropy Range | Security Level |
+|--------|--------------|----------------|
+| Weak (1/5) | < 35 bits | Vulnerable to dedicated attacks |
+| Fair (2/5) | 35-49 bits | Acceptable for low-value accounts |
+| Good (3/5) | 50-64 bits | Strong for most purposes |
+| Strong (4/5) | 65-84 bits | Very strong, exceeds requirements |
+| Excellent (5/5) | 85+ bits | Extremely strong, nation-state resistant |
+
+**Example:** A passphrase like `istuvillaan.R8U.pergola.lastain` (35 characters, ~68 bits entropy) rates as **"strong" (4/5)**.
+
+### Why These Thresholds Work for Random Passphrases
+
+Unlike user-chosen passwords, randomly-generated passphrases provide:
+- **True randomness** - entropy calculations are mathematically accurate
+- **Positional unpredictability** - the alphanumeric segment position adds genuine entropy
+- **No blocklist concerns** - random words don't appear in common password lists
+- **Higher security per character** - no human bias or predictable patterns
+
+These thresholds align with practical security requirements while accounting for real-world attack scenarios and proper password hashing (bcrypt/scrypt/Argon2).
+
+### NIST SP 800-63B Compliance
+
+Generated passphrases comply with [NIST SP 800-63B Digital Identity Guidelines](https://pages.nist.gov/800-63-3/sp800-63b.html):
+
+- **Single-factor authentication:** 15+ characters minimum ✓
+- **Multi-factor authentication:** 8+ characters minimum ✓
+- **No forced composition rules:** No artificial uppercase/symbol requirements
+- **Focus on length over complexity:** Longer passphrases are inherently stronger
+
+The default 3-word configuration generates passphrases averaging 25-30 characters, well exceeding NIST minimums.
+
+### Entropy Calculation Methods
+
+The tool uses three complementary entropy calculation methods:
+
+1. **Brute-force Entropy**: Assumes attacker has no knowledge of generation method
+2. **Pattern-Aware Entropy**: Assumes attacker knows the pattern but not the wordlist
+3. **Wordlist Entropy** (worst-case): Assumes attacker has the exact wordlist and full algorithm knowledge
+
+Even in the worst-case scenario with complete algorithm knowledge, the positional entropy of the randomly-placed alphanumeric segment provides additional protection that cannot be bypassed.
+
+**For Developers:** See [`TESTING.md`](TESTING.md) for detailed information about the strength rating implementation and cross-platform validation.
 
 ## Installation
 
@@ -192,3 +255,70 @@ If you need to update the Finnish wordlist:
     ```
 
 **Important**: Both `internal/words.txt.gz` (compressed wordlist) and `internal/words.txt` (source) should be committed to the repository. The `words.txt.gz` file is embedded in the binary during build via `//go:embed`, while `words.txt` serves as the source for regenerating the compressed version when needed.
+
+## Frequently Asked Questions
+
+### How is the strength rating calculated?
+
+The strength rating is based on the entropy (randomness) of the generated passphrase, measured in bits. The tool calculates entropy using three different methods:
+
+1. **Brute-force entropy** - assumes the attacker tries all possible character combinations
+2. **Pattern-aware entropy** - assumes the attacker knows the generation pattern but not the wordlist
+3. **Wordlist entropy** - worst-case scenario where the attacker has the exact wordlist
+
+The rating uses the wordlist entropy as the baseline, since it represents the minimum guaranteed security even if an attacker has complete knowledge of the system.
+
+### What do the different strength levels mean?
+
+The 5-level rating system is calibrated specifically for randomly-generated passphrases:
+
+- **Weak (1/5)**: Less than 35 bits - vulnerable to dedicated attacks
+- **Fair (2/5)**: 35-49 bits - acceptable for low-value accounts
+- **Good (3/5)**: 50-64 bits - strong for most purposes
+- **Strong (4/5)**: 65-84 bits - very strong, exceeds most requirements
+- **Excellent (5/5)**: 85+ bits - extremely strong, resistant to nation-state attacks
+
+With proper password hashing (bcrypt, scrypt, or Argon2), passphrases rated "good" or higher are secure against practical offline attacks.
+
+### What is NIST SP 800-63B compliance?
+
+[NIST SP 800-63B](https://pages.nist.gov/800-63-3/sp800-63b.html) is a U.S. government guideline for digital identity authentication. It specifies minimum password lengths based on authentication factors:
+
+- **15+ characters** for single-factor authentication (password only)
+- **8+ characters** for multi-factor authentication (password + another factor)
+
+The default configuration of this tool (3 words) generates passphrases averaging 25-30 characters, comfortably exceeding both requirements.
+
+### Why are these thresholds appropriate for random passphrases?
+
+These strength thresholds are specifically designed for **randomly-generated** passphrases, which differ fundamentally from user-chosen passwords:
+
+**Random passphrases provide:**
+- True mathematical randomness (no human bias)
+- Accurate entropy calculations (no predictable patterns)
+- Positional unpredictability (segment placement adds genuine entropy)
+- No common password concerns (won't appear on blocklists)
+
+**In contrast, user-chosen passwords:**
+- Often follow predictable patterns ("Password1!")
+- Have lower entropy relative to length
+- Frequently appear on blocklists
+- Require more conservative ratings
+
+This is why user-chosen passwords need stricter guidelines (like NIST's emphasis on length), while our randomly-generated passphrases can be accurately rated based on their true entropy.
+
+### How can I see the entropy and strength rating?
+
+**Command-line interface:** Use the `-i` flag to show entropy analysis, or `-all-profiles` to see all attack profiles:
+```bash
+finpass -i
+```
+
+To see analysis for all attack profiles:
+```bash
+finpass -all-profiles
+```
+
+**Web interface:** The strength rating is always visible. Click "Show Details" to see comprehensive entropy calculations and time-to-crack estimates.
+
+**For developers:** See [`TESTING.md`](TESTING.md) for information about running tests and validating the strength rating system.

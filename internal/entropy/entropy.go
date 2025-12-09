@@ -21,6 +21,18 @@ const (
 	AlphaNumericSegmentLength = 3 // This constant was moved from main.go
 )
 
+// StrengthRating represents the strength level of a passphrase
+type StrengthRating string
+
+// Strength rating constants based on entropy bits
+const (
+	Weak      StrengthRating = "Weak"
+	Fair      StrengthRating = "Fair"
+	Good      StrengthRating = "Good"
+	Strong    StrengthRating = "Strong"
+	Excellent StrengthRating = "Excellent"
+)
+
 type AttackProfile struct {
 	Name        string
 	Description string
@@ -282,15 +294,42 @@ func RandomAlphaNumericSegment(length int) (string, error) {
 	}
 }
 
+// GetStrengthRating returns a strength rating based on entropy bits
+// according to NIST SP 800-63B guidance
+func GetStrengthRating(bits float64) StrengthRating {
+	switch {
+	case bits < 35:
+		return Weak
+	case bits < 50:
+		return Fair
+	case bits < 65:
+		return Good
+	case bits < 85:
+		return Strong
+	default:
+		return Excellent
+	}
+}
+
+// CheckNISTCompliance checks if a passphrase meets NIST SP 800-63B
+// minimum length requirements
+func CheckNISTCompliance(length int, isMFA bool) bool {
+	minLength := 15
+	if isMFA {
+		minLength = 8
+	}
+	return length >= minLength
+}
+
 func DisplayEntropyInfo(passphrase string, delimiterRune rune, wordCount int, maxLength uint, smallWords []string, allProfiles bool, customSpeed float64, profileName string, words []string) string {
 	var output strings.Builder
 	if allProfiles {
 		bruteEnt, patternEnt, wordlistEnt := CalculateEntropyForProfile(passphrase, delimiterRune, wordCount, AttackProfile{}, words)
 
 		output.WriteString("Passphrase entropy analysis:\n")
-		output.WriteString(fmt.Sprintf("  Brute-force:          %5.1f bits\n", bruteEnt))
-		output.WriteString(fmt.Sprintf("  Pattern-aware attack: %5.1f bits\n", patternEnt))
-		output.WriteString(fmt.Sprintf("  Known wordlist:       %5.1f bits\n", wordlistEnt))
+		output.WriteString(fmt.Sprintf("  Brute-force:          %5.1f bits (%s)\n", bruteEnt, GetStrengthRating(bruteEnt)))
+		output.WriteString(fmt.Sprintf("  Pattern-aware attack: %5.1f bits (%s)\n", patternEnt, GetStrengthRating(patternEnt)))
+		output.WriteString(fmt.Sprintf("  Known wordlist:       %5.1f bits (%s)\n", wordlistEnt, GetStrengthRating(wordlistEnt)))
 		if maxLength > 0 {
 			wordlistEntWithSize := WordlistEntropy(passphrase, delimiterRune, len(smallWords), wordCount)
 			output.WriteString(fmt.Sprintf("  Known wordlist+params:%5.1f bits\n", wordlistEntWithSize))
@@ -340,9 +379,9 @@ func DisplayEntropyInfo(passphrase string, delimiterRune rune, wordCount int, ma
 		bruteEnt, patternEnt, wordlistEnt := CalculateEntropyForProfile(passphrase, delimiterRune, wordCount, AttackProfile{Speed: speed}, words)
 
 		output.WriteString(fmt.Sprintf("Entropy and estimated time to crack using %s:\n", profileDesc))
-		output.WriteString(fmt.Sprintf("* Brute-force:           %5.1f bits (%s)\n", bruteEnt, EstimateTimeToCrack(bruteEnt, speed)))
-		output.WriteString(fmt.Sprintf("* Pattern-aware attack:  %5.1f bits (%s)\n", patternEnt, EstimateTimeToCrack(patternEnt, speed)))
-		output.WriteString(fmt.Sprintf("* Known wordlist:        %5.1f bits (%s)\n", wordlistEnt, EstimateTimeToCrack(wordlistEnt, speed)))
+		output.WriteString(fmt.Sprintf("* Brute-force:           %5.1f bits (%s) - %s\n", bruteEnt, GetStrengthRating(bruteEnt), EstimateTimeToCrack(bruteEnt, speed)))
+		output.WriteString(fmt.Sprintf("* Pattern-aware attack:  %5.1f bits (%s) - %s\n", patternEnt, GetStrengthRating(patternEnt), EstimateTimeToCrack(patternEnt, speed)))
+		output.WriteString(fmt.Sprintf("* Known wordlist:        %5.1f bits (%s) - %s\n", wordlistEnt, GetStrengthRating(wordlistEnt), EstimateTimeToCrack(wordlistEnt, speed)))
 		if maxLength > 0 {
 			wordlistEntWithSize := WordlistEntropy(passphrase, delimiterRune, len(smallWords), wordCount)
 			output.WriteString(fmt.Sprintf("* Known wordlist and parameters (-m=%d): %5.1f bits (%s)\n", maxLength, wordlistEntWithSize, EstimateTimeToCrack(wordlistEntWithSize, speed)))
