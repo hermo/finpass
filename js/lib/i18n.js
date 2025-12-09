@@ -11,7 +11,7 @@ const translations = {
   en: {
     // App title and description
     appTitle: 'Finpass',
-    appDescription: 'Secure Passphrase Generator',
+    appDescription: 'Create secure, memorable passphrases in seconds',
 
     // Generator settings
     wordCount: 'Words',
@@ -85,7 +85,7 @@ const translations = {
   fi: {
     // App title and description
     appTitle: 'Finpass',
-    appDescription: 'Turvallinen Salalausegeneraattori',
+    appDescription: 'Luo turvallisia ja helposti muistettavia salalauseita hetkessä',
 
     // Generator settings
     wordCount: 'Sanat',

@@ -2,6 +2,8 @@ package main
 
 import (
 	"testing"
+	"github.com/hermo/finpass/internal/entropy"
+	"github.com/hermo/finpass/internal"
 )
 
 func TestBruteforceEntropy(t *testing.T) {
@@ -17,7 +19,7 @@ func TestBruteforceEntropy(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		if got := BruteforceEntropy(tt.passphrase); got != tt.want {
+		if got := entropy.BruteforceEntropy(tt.passphrase); got != tt.want {
 			t.Errorf("BruteforceEntropy(%q) = %v, want %v", tt.passphrase, got, tt.want)
 		}
 	}
@@ -36,7 +38,7 @@ func TestWordlistEntropy(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		if got := WordlistEntropy(tt.passphrase, tt.separator, tt.wordlistSize, tt.wordCount); got != tt.want {
+		if got := entropy.WordlistEntropy(tt.passphrase, tt.separator, tt.wordlistSize, tt.wordCount); got != tt.want {
 			t.Errorf("WordlistEntropy(%q, %q, %d, %d) = %v, want %v", tt.passphrase, string(tt.separator), tt.wordlistSize, tt.wordCount, got, tt.want)
 		}
 	}
@@ -44,14 +46,22 @@ func TestWordlistEntropy(t *testing.T) {
 
 func TestRandomWord(t *testing.T) {
 	maxLength := uint(7)
-	word := RandomWord(maxLength)
+	word, err := entropy.RandomWord(maxLength, internal.Words)
+	if err != nil {
+		t.Errorf("RandomWord %q", err)
+	}
+
 	if len(word) > int(maxLength) {
 		t.Errorf("RandomWord(%d) = %q, want length <= %d", maxLength, word, maxLength)
 	}
 }
 
 func TestRandomAlphaNumericSegment(t *testing.T) {
-	segment := RandomAlphaNumericSegment(3)
+	segment, err := entropy.RandomAlphaNumericSegment(3)
+	if err != nil {
+		t.Errorf("RandomAlphaNumericSegment %q", err)
+	}
+
 	if len(segment) != 3 {
 		t.Errorf("RandomAlphaNumericSegment() = %q, want length == %d", segment, 3)
 	}
