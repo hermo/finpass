@@ -201,18 +201,28 @@ class FinpassApp extends HTMLElement {
 			return;
 		}
 
+		// Calculate effective wordlist size after filtering by maxLength
+		let effectiveWordlistSize = this.wordlist.length;
+		if (this.settings.maxLength > 0) {
+			effectiveWordlistSize = this.wordlist.filter(
+				(word) => word.length <= this.settings.maxLength,
+			).length;
+		}
+
 		const entropy = calculateEntropy(
 			this.passphrase,
 			this.settings.separator,
 			this.settings.wordCount,
-			this.wordlist.length,
+			effectiveWordlistSize,
 		);
 
 		const entropyComponent = this.shadowRoot?.querySelector(
 			"finpass-entropy",
-		) as HTMLElement & { update?: (entropy: EntropyResult) => void };
+		) as HTMLElement & {
+			update?: (entropy: EntropyResult, passphraseLength: number) => void;
+		};
 		if (entropyComponent?.update) {
-			entropyComponent.update(entropy);
+			entropyComponent.update(entropy, this.passphrase.length);
 		}
 	}
 

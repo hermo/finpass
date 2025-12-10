@@ -17,15 +17,29 @@ interface TranslationKeys {
 	showPassphrase: string;
 	hidePassphrase: string;
 	entropy: string;
+	strength: string;
 	entropyBits: string;
 	bruteforce: string;
 	patternAware: string;
 	wordlist: string;
+	showDetails: string;
+	hideDetails: string;
+	entropyBreakdown: string;
+	timeToCrack: string;
+	compliance: string;
 	strengthWeak: string;
 	strengthFair: string;
 	strengthGood: string;
 	strengthStrong: string;
 	strengthExcellent: string;
+	explanationWeak: string;
+	explanationFair: string;
+	explanationGood: string;
+	explanationStrong: string;
+	explanationExcellent: string;
+	nistCompliant: string;
+	nistCompliantFull: string;
+	nistNonCompliant: string;
 	bruteforceDesc: string;
 	patternAwareDesc: string;
 	wordlistDesc: string;
@@ -71,10 +85,16 @@ const translations: Translations = {
 
 		// Entropy section
 		entropy: "Entropy",
+		strength: "Strength",
 		entropyBits: "bits",
 		bruteforce: "Brute-force",
 		patternAware: "Pattern-aware",
 		wordlist: "Wordlist",
+		showDetails: "Show Details",
+		hideDetails: "Hide Details",
+		entropyBreakdown: "Entropy Breakdown",
+		timeToCrack: "Estimated Time to Crack",
+		compliance: "Security Standards",
 
 		// Strength ratings
 		strengthWeak: "Weak",
@@ -82,6 +102,22 @@ const translations: Translations = {
 		strengthGood: "Good",
 		strengthStrong: "Strong",
 		strengthExcellent: "Excellent",
+
+		// Strength explanations
+		explanationWeak:
+			"This passphrase is too weak. Consider using more words or a longer passphrase.",
+		explanationFair:
+			"This passphrase provides basic security but could be stronger.",
+		explanationGood: "This passphrase provides good security for most uses.",
+		explanationStrong:
+			"This passphrase provides strong security. It is randomly generated and has high entropy.",
+		explanationExcellent:
+			"This passphrase provides excellent security. It is highly resistant to all known attacks.",
+
+		// NIST compliance
+		nistCompliant: "Meets NIST SP 800-63B requirements.",
+		nistCompliantFull: "Meets NIST SP 800-63B",
+		nistNonCompliant: "Does not meet NIST SP 800-63B",
 
 		// Entropy descriptions
 		bruteforceDesc: "Attacker tries all character combinations",
@@ -127,10 +163,16 @@ const translations: Translations = {
 
 		// Entropy section
 		entropy: "Entropia",
+		strength: "Vahvuus",
 		entropyBits: "bittiä",
 		bruteforce: "Raakavoimahyökkäys",
 		patternAware: "Kaava tiedossa",
 		wordlist: "Sanalista",
+		showDetails: "Näytä Tiedot",
+		hideDetails: "Piilota Tiedot",
+		entropyBreakdown: "Entropian Erittely",
+		timeToCrack: "Arvioitu Murtamisaika",
+		compliance: "Turvallisuusstandardit",
 
 		// Strength ratings
 		strengthWeak: "Heikko",
@@ -138,6 +180,23 @@ const translations: Translations = {
 		strengthGood: "Hyvä",
 		strengthStrong: "Vahva",
 		strengthExcellent: "Erinomainen",
+
+		// Strength explanations
+		explanationWeak:
+			"Tämä salalause on liian heikko. Harkitse useampien sanojen tai pidemmän salalauseen käyttöä.",
+		explanationFair:
+			"Tämä salalause tarjoaa perustason turvallisuutta, mutta voisi olla vahvempi.",
+		explanationGood:
+			"Tämä salalause tarjoaa hyvän turvallisuuden useimpiin käyttötarkoituksiin.",
+		explanationStrong:
+			"Tämä salalause tarjoaa vahvan turvallisuuden. Se on satunnaisesti luotu ja sisältää korkean entropian.",
+		explanationExcellent:
+			"Tämä salalause tarjoaa erinomaisen turvallisuuden. Se kestää hyvin kaikki tunnetut hyökkäykset.",
+
+		// NIST compliance
+		nistCompliant: "Täyttää NIST SP 800-63B -vaatimukset.",
+		nistCompliantFull: "Täyttää NIST SP 800-63B",
+		nistNonCompliant: "Ei täytä NIST SP 800-63B",
 
 		// Entropy descriptions
 		bruteforceDesc: "Hyökkääjä kokeilee kaikkia merkkiyhdistelmiä",

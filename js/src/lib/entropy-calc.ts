@@ -177,22 +177,165 @@ export const calculateEntropy = (
 export type StrengthRating = "weak" | "fair" | "good" | "strong" | "excellent";
 
 /**
+ * Attack profile definition.
+ */
+export interface AttackProfile {
+	name: string;
+	speed: number;
+	description: string;
+}
+
+/**
+ * Keys for predefined attack profiles.
+ */
+export type AttackProfileKey =
+	| "online"
+	| "paranoid"
+	| "strong"
+	| "standard"
+	| "weak"
+	| "legacy";
+
+/**
+ * Attack profiles matching real-world hash-cracking performance.
+ * Speeds based on real-world hash-cracking benchmarks.
+ */
+export const ATTACK_PROFILES: Record<AttackProfileKey, AttackProfile> = {
+	online: {
+		name: "Online Attack",
+		speed: 100,
+		description: "Login attempts with throttling",
+	},
+	paranoid: {
+		name: "Paranoid Storage",
+		speed: 8.9e3,
+		description: "scrypt with high work factor",
+	},
+	strong: {
+		name: "Strong Storage",
+		speed: 300.5e3,
+		description: "bcrypt with proper rounds",
+	},
+	standard: {
+		name: "Standard Storage",
+		speed: 11.0e6,
+		description: "PBKDF2 with typical iterations",
+	},
+	weak: {
+		name: "Weak Storage",
+		speed: 27.6e9,
+		description: "Fast hash (SHA256, no salt)",
+	},
+	legacy: {
+		name: "Legacy Storage",
+		speed: 308.2e9,
+		description: "Vulnerable hash (NTLM, MD5)",
+	},
+};
+
+/**
  * Get a strength rating based on entropy bits.
+ * These thresholds are calibrated for randomly-generated passphrases
+ * following NIST SP 800-63B guidance.
  *
  * Ratings:
- * - weak: < 60 bits
- * - fair: 60-79 bits
- * - good: 80-99 bits
- * - strong: 100-127 bits
- * - excellent: >= 128 bits
+ * - weak: < 35 bits
+ * - fair: 35-49 bits
+ * - good: 50-64 bits
+ * - strong: 65-84 bits
+ * - excellent: >= 85 bits
  *
  * @param bits - Entropy in bits
  * @returns Strength rating: 'weak', 'fair', 'good', 'strong', or 'excellent'
  */
 export const getStrengthRating = (bits: number): StrengthRating => {
-	if (bits < 60) return "weak";
-	if (bits < 80) return "fair";
-	if (bits < 100) return "good";
-	if (bits < 128) return "strong";
+	if (bits < 35) return "weak";
+	if (bits < 50) return "fair";
+	if (bits < 65) return "good";
+	if (bits < 85) return "strong";
 	return "excellent";
+};
+
+/**
+ * NIST compliance result.
+ */
+export interface NISTCompliance {
+	compliant: boolean;
+	minLength: number;
+	actualLength: number;
+	standard: string;
+}
+
+/**
+ * Check NIST SP 800-63B length requirements.
+ * @param length - Passphrase length
+ * @param isMFA - Whether used with multi-factor auth
+ * @returns Compliance status with properties: compliant, minLength, actualLength, standard
+ */
+export const checkNISTCompliance = (
+	length: number,
+	isMFA = false,
+): NISTCompliance => {
+	const minLength = isMFA ? 8 : 15;
+	return {
+		compliant: length >= minLength,
+		minLength,
+		actualLength: length,
+		standard: "NIST SP 800-63B",
+	};
+};
+
+/**
+ * Estimate time to crack based on entropy and attack speed.
+ * @param entropy - Entropy in bits
+ * @param speed - Guesses per second
+ * @returns Human-readable time estimate
+ */
+export const estimateTimeToCrack = (
+	entropy: number,
+	speed: number,
+): string => {
+	// Average case: find passphrase halfway through search space
+	const guesses = 2 ** entropy / 2;
+	const seconds = guesses / speed;
+
+	// Convert to years for easier comparison
+	const years = seconds / (60 * 60 * 24 * 365);
+
+	if (seconds < 1e-3) {
+		return "instant";
+	}
+	if (seconds < 1) {
+		return `${Math.round(seconds * 1000)}ms`;
+	}
+	if (seconds < 60) {
+		return `${Math.round(seconds)}s`;
+	}
+	if (seconds < 3600) {
+		return `${Math.round(seconds / 60)}m`;
+	}
+	if (seconds < 86400) {
+		return `${Math.round(seconds / 3600)}h`;
+	}
+	if (years < 1) {
+		return `${Math.round(seconds / 86400)}d`;
+	}
+	if (years < 1e3) {
+		return `${years.toFixed(1)}y`;
+	}
+	if (years < 1e6) {
+		return `${Math.round(years / 1e3)}ky`;
+	}
+	if (years < 1e9) {
+		return `${Math.round(years / 1e6)}My`;
+	}
+	if (years < 1e12) {
+		return `${Math.round(years / 1e9)}By`;
+	}
+	if (years < 1e15) {
+		return `${Math.round(years / 1e12)}Ty`;
+	}
+	// Use scientific notation for extremely large numbers
+	const exp = Math.log10(years);
+	return `1e${Math.round(exp)}y`;
 };
