@@ -335,6 +335,14 @@ class FinpassApp extends HTMLElement {
           justify-content: center;
           padding: var(--space-3xl, 4rem);
           gap: var(--space-lg, 1.5rem);
+          opacity: 0;
+          animation: fadeIn 0.2s ease-in 1s forwards;
+        }
+
+        @keyframes fadeIn {
+          to {
+            opacity: 1;
+          }
         }
 
         .spinner {
