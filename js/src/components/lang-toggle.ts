@@ -3,7 +3,7 @@
  * @module components/lang-toggle
  */
 
-import { i18n } from '../lib/i18n.js';
+import { i18n } from "../lib/i18n";
 
 /**
  * Custom element for language selection toggle.
@@ -15,55 +15,59 @@ import { i18n } from '../lib/i18n.js';
  * <finpass-lang-toggle></finpass-lang-toggle>
  */
 class LangToggle extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-    this._onLanguageChange = this._onLanguageChange.bind(this);
-  }
+	constructor() {
+		super();
+		this.attachShadow({ mode: "open" });
+		this.onLanguageChange = this.onLanguageChange.bind(this);
+	}
 
-  connectedCallback() {
-    this.render();
-    i18n.onChange(this._onLanguageChange);
-  }
+	connectedCallback() {
+		this.render();
+		i18n.onChange(this.onLanguageChange);
+	}
 
-  disconnectedCallback() {
-    i18n.offChange(this._onLanguageChange);
-  }
+	disconnectedCallback() {
+		i18n.offChange(this.onLanguageChange);
+	}
 
-  /**
-   * Handle language change events from i18n.
-   * @private
-   */
-  _onLanguageChange() {
-    this.render();
-  }
+	/**
+	 * Handle language change events from i18n.
+	 * @private
+	 */
+	onLanguageChange(): void {
+		this.render();
+	}
 
-  /**
-   * Handle button click to change language.
-   * @private
-   * @param {string} lang - Language code to switch to
-   */
-  _handleClick(lang) {
-    if (i18n.getCurrentLanguage() !== lang) {
-      i18n.setLanguage(lang);
+	/**
+	 * Handle button click to change language.
+	 * @private
+	 * @param {string} lang - Language code to switch to
+	 */
+	handleClick(lang: "en" | "fi"): void {
+		if (i18n.getCurrentLanguage() !== lang) {
+			i18n.setLanguage(lang);
 
-      // Dispatch custom event for other components
-      this.dispatchEvent(new CustomEvent('language-change', {
-        detail: { language: lang },
-        bubbles: true,
-        composed: true
-      }));
-    }
-  }
+			// Dispatch custom event for other components
+			this.dispatchEvent(
+				new CustomEvent("language-change", {
+					detail: { language: lang },
+					bubbles: true,
+					composed: true,
+				}),
+			);
+		}
+	}
 
-  /**
-   * Render the component.
-   * @private
-   */
-  render() {
-    const currentLang = i18n.getCurrentLanguage();
+	/**
+	 * Render the component.
+	 * @private
+	 */
+	render(): void {
+		if (!this.shadowRoot) return;
 
-    this.shadowRoot.innerHTML = `
+		const currentLang = i18n.getCurrentLanguage();
+
+		this.shadowRoot.innerHTML = `
       <style>
         :host {
           display: inline-block;
@@ -107,15 +111,15 @@ class LangToggle extends HTMLElement {
 
       <div class="lang-toggle">
         <button
-          class="${currentLang === 'en' ? 'active' : ''}"
-          aria-pressed="${currentLang === 'en'}"
+          class="${currentLang === "en" ? "active" : ""}"
+          aria-pressed="${currentLang === "en"}"
           aria-label="English"
         >
           EN
         </button>
         <button
-          class="${currentLang === 'fi' ? 'active' : ''}"
-          aria-pressed="${currentLang === 'fi'}"
+          class="${currentLang === "fi" ? "active" : ""}"
+          aria-pressed="${currentLang === "fi"}"
           aria-label="Suomi"
         >
           FI
@@ -123,14 +127,19 @@ class LangToggle extends HTMLElement {
       </div>
     `;
 
-    // Attach event listeners
-    const buttons = this.shadowRoot.querySelectorAll('button');
-    buttons[0].addEventListener('click', () => this._handleClick('en'));
-    buttons[1].addEventListener('click', () => this._handleClick('fi'));
-  }
+		// Attach event listeners
+		const buttons =
+			this.shadowRoot.querySelectorAll<HTMLButtonElement>("button");
+		if (buttons[0]) {
+			buttons[0].addEventListener("click", () => this.handleClick("en"));
+		}
+		if (buttons[1]) {
+			buttons[1].addEventListener("click", () => this.handleClick("fi"));
+		}
+	}
 }
 
 // Register the custom element
-customElements.define('finpass-lang-toggle', LangToggle);
+customElements.define("finpass-lang-toggle", LangToggle);
 
 export default LangToggle;

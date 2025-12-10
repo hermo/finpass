@@ -3,7 +3,7 @@
  * @module components/generator
  */
 
-import { i18n } from '../lib/i18n.js';
+import { i18n } from "../lib/i18n";
 
 /**
  * Custom element for passphrase display and generation.
@@ -15,136 +15,158 @@ import { i18n } from '../lib/i18n.js';
  * <finpass-generator></finpass-generator>
  */
 class Generator extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-    this._onLanguageChange = this._onLanguageChange.bind(this);
-    this._passphrase = '';
-    this._isCopied = false;
-  }
+	private passphrase: string;
+	private isCopied: boolean;
 
-  connectedCallback() {
-    this.render();
-    this._attachEventListeners();
-    i18n.onChange(this._onLanguageChange);
-  }
+	constructor() {
+		super();
+		this.attachShadow({ mode: "open" });
+		this.onLanguageChange = this.onLanguageChange.bind(this);
+		this.passphrase = "";
+		this.isCopied = false;
+	}
 
-  disconnectedCallback() {
-    i18n.offChange(this._onLanguageChange);
-  }
+	connectedCallback() {
+		this.render();
+		this.attachEventListeners();
+		i18n.onChange(this.onLanguageChange);
+	}
 
-  /**
-   * Handle language change events from i18n.
-   * @private
-   */
-  _onLanguageChange() {
-    this._updateButtonLabels();
-  }
+	disconnectedCallback() {
+		i18n.offChange(this.onLanguageChange);
+	}
 
-  /**
-   * Update button labels without full re-render.
-   * @private
-   */
-  _updateButtonLabels() {
-    const generateBtn = this.shadowRoot.querySelector('#generate-btn');
-    const copyBtn = this.shadowRoot.querySelector('#copy-btn');
+	/**
+	 * Handle language change events from i18n.
+	 * @private
+	 */
+	onLanguageChange(): void {
+		this.updateButtonLabels();
+	}
 
-    if (generateBtn) {
-      generateBtn.setAttribute('aria-label', i18n.t('generate'));
-      generateBtn.title = i18n.t('generate');
-    }
+	/**
+	 * Update button labels without full re-render.
+	 * @private
+	 */
+	updateButtonLabels(): void {
+		if (!this.shadowRoot) return;
 
-    if (copyBtn && !this._isCopied) {
-      copyBtn.setAttribute('aria-label', i18n.t('copy'));
-      copyBtn.title = i18n.t('copy');
-    }
-  }
+		const generateBtn =
+			this.shadowRoot.querySelector<HTMLButtonElement>("#generate-btn");
+		const copyBtn =
+			this.shadowRoot.querySelector<HTMLButtonElement>("#copy-btn");
 
-  /**
-   * Attach event listeners to buttons.
-   * @private
-   */
-  _attachEventListeners() {
-    const generateBtn = this.shadowRoot.querySelector('#generate-btn');
-    const copyBtn = this.shadowRoot.querySelector('#copy-btn');
+		if (generateBtn) {
+			generateBtn.setAttribute("aria-label", i18n.t("generate"));
+			generateBtn.title = i18n.t("generate");
+		}
 
-    if (generateBtn) {
-      generateBtn.addEventListener('click', () => this._handleGenerate());
-    }
+		if (copyBtn && !this.isCopied) {
+			copyBtn.setAttribute("aria-label", i18n.t("copy"));
+			copyBtn.title = i18n.t("copy");
+		}
+	}
 
-    if (copyBtn) {
-      copyBtn.addEventListener('click', () => this._handleCopy());
-    }
-  }
+	/**
+	 * Attach event listeners to buttons.
+	 * @private
+	 */
+	attachEventListeners(): void {
+		if (!this.shadowRoot) return;
 
-  /**
-   * Handle generate button click.
-   * @private
-   */
-  _handleGenerate() {
-    this.dispatchEvent(new CustomEvent('regenerate', {
-      bubbles: true,
-      composed: true
-    }));
-  }
+		const generateBtn =
+			this.shadowRoot.querySelector<HTMLButtonElement>("#generate-btn");
+		const copyBtn =
+			this.shadowRoot.querySelector<HTMLButtonElement>("#copy-btn");
 
-  /**
-   * Handle copy button click.
-   * @private
-   */
-  async _handleCopy() {
-    if (!this._passphrase) {
-      return;
-    }
+		if (generateBtn) {
+			generateBtn.addEventListener("click", () => this.handleGenerate());
+		}
 
-    try {
-      await navigator.clipboard.writeText(this._passphrase);
-      this._showCopyFeedback();
-    } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
-    }
-  }
+		if (copyBtn) {
+			copyBtn.addEventListener("click", () => this.handleCopy());
+		}
+	}
 
-  /**
-   * Show temporary "Copied!" feedback.
-   * @private
-   */
-  _showCopyFeedback() {
-    const copyBtn = this.shadowRoot.querySelector('#copy-btn');
-    if (!copyBtn) return;
+	/**
+	 * Handle generate button click.
+	 * @private
+	 */
+	handleGenerate(): void {
+		this.dispatchEvent(
+			new CustomEvent("regenerate", {
+				bubbles: true,
+				composed: true,
+			}),
+		);
+	}
 
-    this._isCopied = true;
-    copyBtn.textContent = `✓ ${i18n.t('copied')}`;
-    copyBtn.classList.add('copied');
-    copyBtn.disabled = true;
+	/**
+	 * Handle copy button click.
+	 * @private
+	 */
+	async handleCopy(): Promise<void> {
+		if (!this.passphrase) {
+			return;
+		}
 
-    setTimeout(() => {
-      this._isCopied = false;
-      copyBtn.textContent = `📋 ${i18n.t('copy')}`;
-      copyBtn.classList.remove('copied');
-      copyBtn.disabled = false;
-    }, 2000);
-  }
+		try {
+			await navigator.clipboard.writeText(this.passphrase);
+			this.showCopyFeedback();
+		} catch (error) {
+			console.error("Failed to copy to clipboard:", error);
+		}
+	}
 
-  /**
-   * Set the passphrase to display.
-   * @public
-   * @param {string} text - The passphrase to display
-   */
-  setPassphrase(text) {
-    this._passphrase = text;
-    const display = this.shadowRoot.querySelector('#passphrase-display');
-    if (display) {
-      display.textContent = text || '';
-    }
-  }
+	/**
+	 * Show temporary "Copied!" feedback.
+	 * @private
+	 */
+	showCopyFeedback(): void {
+		if (!this.shadowRoot) return;
 
-  /**
-   * Render the component.
-   * @private
-   */
-  render() {
-    this.shadowRoot.innerHTML = `
+		const copyBtn =
+			this.shadowRoot.querySelector<HTMLButtonElement>("#copy-btn");
+		if (!copyBtn) return;
+
+		this.isCopied = true;
+		copyBtn.textContent = `✓ ${i18n.t("copied")}`;
+		copyBtn.classList.add("copied");
+		copyBtn.disabled = true;
+
+		setTimeout(() => {
+			this.isCopied = false;
+			copyBtn.textContent = `📋 ${i18n.t("copy")}`;
+			copyBtn.classList.remove("copied");
+			copyBtn.disabled = false;
+		}, 2000);
+	}
+
+	/**
+	 * Set the passphrase to display.
+	 * @public
+	 * @param {string} text - The passphrase to display
+	 */
+	setPassphrase(text: string): void {
+		this.passphrase = text;
+		if (!this.shadowRoot) return;
+
+		const display = this.shadowRoot.querySelector<HTMLElement>(
+			"#passphrase-display",
+		);
+		if (display) {
+			display.textContent = text || "";
+		}
+	}
+
+	/**
+	 * Render the component.
+	 * @private
+	 */
+	render(): void {
+		if (!this.shadowRoot) return;
+
+		this.shadowRoot.innerHTML = `
       <style>
         :host {
           display: block;
@@ -268,28 +290,28 @@ class Generator extends HTMLElement {
         <div class="actions">
           <button
             id="generate-btn"
-            aria-label="${i18n.t('generate')}"
-            title="${i18n.t('generate')}"
+            aria-label="${i18n.t("generate")}"
+            title="${i18n.t("generate")}"
           >
-            ♻️ ${i18n.t('generate')}
+            ♻️ ${i18n.t("generate")}
           </button>
           <button
             id="copy-btn"
-            aria-label="${i18n.t('copy')}"
-            title="${i18n.t('copy')}"
+            aria-label="${i18n.t("copy")}"
+            title="${i18n.t("copy")}"
           >
-            📋 ${i18n.t('copy')}
+            📋 ${i18n.t("copy")}
           </button>
         </div>
       </div>
     `;
 
-    // Re-attach event listeners after render
-    this._attachEventListeners();
-  }
+		// Re-attach event listeners after render
+		this.attachEventListeners();
+	}
 }
 
 // Register the custom element
-customElements.define('finpass-generator', Generator);
+customElements.define("finpass-generator", Generator);
 
 export default Generator;
