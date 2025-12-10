@@ -1,5 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" fill="none"/>
-  <path d="M32,2 C15,2 4,12 4,12 V28 C4,42 16,56 32,62 C48,56 60,42 60,28 V12 C60,12 49,2 32,2 Z" fill="#FFFFFF"/>
-  <path d="M22,2 L22,62 M4,24 L60,24" stroke="#003580" stroke-width="10" fill="none"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg viewBox="0 0 64 64" version="1.1" xmlns="http://www.w3.org/2000/svg" >
+  <defs>
+    <clipPath id="shieldClip">
+      <path
+         d="M32,2 C15,2 4,12 4,12 V28 C4,42 16,56 32,62 C48,56 60,42 60,28 V12 C60,12 49,2 32,2 Z" />
+    </clipPath>
+  </defs>
+
+  <rect
+     width="64"
+     height="64"
+     fill="none"
+     id="rect1" />
+  <path
+     d="M32,2 C15,2 4,12 4,12 V28 C4,42 16,56 32,62 C48,56 60,42 60,28 V12 C60,12 49,2 32,2 Z"
+     fill="#FFFFFF"
+     id="path1" />
+  <g clip-path="url(#shieldClip)">
+    <rect
+       style="fill:#003580"
+       id="rect2"
+       width="56"
+       height="10"
+       x="4"
+       y="19" />
+    <rect
+       style="fill:#003580"
+       id="rect3"
+       width="10"
+       height="60"
+       x="17"
+       y="2" />
+  </g>
 </svg>
+
