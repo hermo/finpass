@@ -103,19 +103,27 @@ class Generator extends HTMLElement {
 
 	/**
 	 * Handle copy button click.
+	 * Call clipboard API synchronously to preserve user gesture context in Safari.
 	 * @private
 	 */
-	async handleCopy(): Promise<void> {
+	handleCopy(): void {
 		if (!this.passphrase) {
 			return;
 		}
 
-		try {
-			await navigator.clipboard.writeText(this.passphrase);
-			this.showCopyFeedback();
-		} catch (error) {
-			console.error("Failed to copy to clipboard:", error);
-		}
+		// Call clipboard API synchronously to preserve user gesture context (Safari requirement)
+		navigator.clipboard
+			.writeText(this.passphrase)
+			.then(() => {
+				this.showCopyFeedback();
+			})
+			.catch((error) => {
+				// Firefox throws "Document is not focused" when DevTools are open, but copy still works
+				// Only log if it's a real failure (not a focus issue)
+				if (error.name !== "NotAllowedError") {
+					console.error("Failed to copy to clipboard:", error);
+				}
+			});
 	}
 
 	/**
