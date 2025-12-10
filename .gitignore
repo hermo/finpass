@@ -9,3 +9,9 @@ finpass
 # JavaScript/TypeScript
 /js/dist/
 /js/node_modules/
+/js/android-chrome-192x192.png
+/js/android-chrome-512x512.png
+/js/apple-touch-icon.png
+/js/favicon-16x16.png
+/js/favicon-32x32.png
+/js/favicon.ico

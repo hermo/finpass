@@ -69,9 +69,9 @@ async function build() {
 	console.log("📝 Updating index.html...");
 	const indexHtml = readFileSync(join(SRC_DIR, "index.html"), "utf-8");
 	const updatedHtml = indexHtml
-		.replace("./styles/theme.css", `./${themeHashedName}`)
-		.replace("./components/app.js", `./${appHashedName}`)
-		.replace("./words.txt", `./${wordsHashedName}`);
+		.replace("styles/theme.css", `./${themeHashedName}`)
+		.replace("components/app.js", `./${appHashedName}`)
+		.replace("words.txt", `./${wordsHashedName}`);
 	writeFileSync(join(DIST_DIR, "index.html"), updatedHtml);
 
 	console.log("✨ Build complete!");

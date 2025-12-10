@@ -9,31 +9,21 @@
   <title>Finpass - Finnish Passphrase Generator</title>
 
   <!-- Styles -->
-  <link rel="stylesheet" href="./styles/theme.css">
+  <link rel="stylesheet" href="styles/theme.css">
 
   <!-- Preload critical resources -->
-  <link rel="preload" href="./words.txt" as="fetch" crossorigin="anonymous">
-
-  <!-- Preload JS modules to eliminate waterfall loading -->
-  <link rel="modulepreload" href="./components/app.js">
-  <link rel="modulepreload" href="./lib/i18n.js">
-  <link rel="modulepreload" href="./lib/passphrase.js">
-  <link rel="modulepreload" href="./lib/crypto.js">
-  <link rel="modulepreload" href="./lib/entropy-calc.js">
-  <link rel="modulepreload" href="./components/generator.js">
-  <link rel="modulepreload" href="./components/controls.js">
-  <link rel="modulepreload" href="./components/entropy.js">
-  <link rel="modulepreload" href="./components/lang-toggle.js">
-
-  <!-- <link rel="manifest" href="./manifest.json"> -->
-
-  <!-- <link rel="icon" type="image/svg+xml" href="/favicon.svg"> -->
+  <link rel="preload" href="words.txt" as="fetch" crossorigin="anonymous">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"> 
+  <link rel="manifest" href="site.webmanifest">
 </head>
 <body>
   <!-- Main Application Component -->
   <finpass-app></finpass-app>
 
   <!-- Application Entry Point -->
-  <script type="module" src="./components/app.js"></script>
+  <script type="module" src="components/app.js"></script>
 </body>
 </html>
