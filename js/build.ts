@@ -10,7 +10,11 @@ async function hashAndRenameFile(
 	baseName: string,
 	extension: string,
 ): Promise<string> {
-	const hash = await $`b3sum -l 8 --raw ${filePath} | base24`.text();
+	const fileContent = readFileSync(filePath);
+	const hasher = new Bun.CryptoHasher("blake2b256");
+	hasher.update(fileContent);
+	const truncatedHash = hasher.digest().slice(0, 8);
+	const hash = b24encode(truncatedHash);
 	const trimmedHash = hash.trim().toLowerCase();
 	const hashedName = `${baseName}-${trimmedHash}.${extension}`;
 	const hashedPath = join(dirname(filePath), hashedName);
@@ -84,3 +88,42 @@ build().catch((error) => {
 	console.error("❌ Build failed:", error);
 	process.exit(1);
 });
+
+
+const B24_ALPHABET = "ZAC2B3EF4GH5TK67P8RS9WXY";
+const B24_ASIZE = B24_ALPHABET.length
+const B24_ENCODE_MAP = Array.from(B24_ALPHABET);
+
+// Base24 encoder
+// Adapted from https://github.com/kuon/js-base24/blob/master/index.js
+function b24encode(data:Buffer):string {
+    let len = data.length;
+
+    if (len % 4 != 0) {
+        throw "Input length must be a multiple of 4";
+    }
+
+    let result:string[] = [];
+
+    for (let i = 0; i < len / 4; i++) {
+        let j = i * 4;
+        let mask = 0xFF;
+        let b3 = data[j]! & mask;
+        let b2 = data[j + 1]! & mask;
+        let b1 = data[j + 2]! & mask;
+        let b0 = data[j + 3]! & mask;
+
+        let value = ((b3 << 24) | (b2 << 16) | (b1 << 8) | b0) >>> 0;
+
+        let subResult: string[] = []
+        for (let k = 0; k < 7; k++) {
+            let idx = value % B24_ASIZE;
+            value = Math.floor(value / B24_ASIZE);
+
+            subResult.unshift(B24_ENCODE_MAP[idx]!);
+        }
+        result = result.concat(subResult);
+    }
+
+    return result.join("");
+}
