@@ -59,11 +59,13 @@ class Generator extends HTMLElement {
 		if (generateBtn) {
 			generateBtn.setAttribute("aria-label", i18n.t("generate"));
 			generateBtn.title = i18n.t("generate");
+			generateBtn.textContent = `♻️ ${i18n.t("generate")}`;
 		}
 
 		if (copyBtn && !this.isCopied) {
 			copyBtn.setAttribute("aria-label", i18n.t("copy"));
 			copyBtn.title = i18n.t("copy");
+			copyBtn.textContent = `📋 ${i18n.t("copy")}`;
 		}
 	}
 
@@ -178,10 +180,14 @@ class Generator extends HTMLElement {
       <style>
         :host {
           display: block;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .generator {
           margin-bottom: 32px;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .passphrase-container {
@@ -218,6 +224,8 @@ class Generator extends HTMLElement {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 12px;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         button {
@@ -233,6 +241,11 @@ class Generator extends HTMLElement {
           align-items: center;
           justify-content: center;
           gap: 8px;
+          box-sizing: border-box;
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         #generate-btn {
@@ -286,6 +299,11 @@ class Generator extends HTMLElement {
 
           .actions {
             grid-template-columns: 1fr;
+          }
+
+          button {
+            padding: 12px 16px;
+            font-size: 0.9375rem;
           }
         }
       </style>

@@ -138,18 +138,24 @@ class Controls extends HTMLElement {
       <style>
         :host {
           display: block;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .controls {
           display: grid;
           gap: 24px;
           margin-bottom: 24px;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .control-group {
           display: flex;
           flex-direction: column;
           gap: 8px;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         label {
@@ -172,6 +178,8 @@ class Controls extends HTMLElement {
           background-repeat: no-repeat;
           background-position: right 12px center;
           padding-right: 40px;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         select:hover {

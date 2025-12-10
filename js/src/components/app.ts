@@ -259,12 +259,17 @@ class FinpassApp extends HTMLElement {
           display: block;
           min-height: 100vh;
           background: var(--color-background, #F9FAFB);
+          width: 100%;
+          overflow-x: hidden;
         }
 
         .app {
           display: flex;
           flex-direction: column;
           min-height: 100vh;
+          width: 100%;
+          max-width: 100vw;
+          overflow-x: hidden;
         }
 
         .header {
@@ -310,6 +315,7 @@ class FinpassApp extends HTMLElement {
           max-width: 700px;
           width: 100%;
           margin: 0 auto;
+          box-sizing: border-box;
         }
 
         .card {
@@ -318,6 +324,8 @@ class FinpassApp extends HTMLElement {
           padding: 32px;
           box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06));
           margin-bottom: 24px;
+          box-sizing: border-box;
+          width: 100%;
         }
 
         .loading-container {
@@ -380,8 +388,12 @@ class FinpassApp extends HTMLElement {
             font-size: 1.5rem;
           }
 
+          .main {
+            padding: 0 16px 16px 16px;
+          }
+
           .card {
-            padding: 24px 20px;
+            padding: 20px 16px;
           }
         }
       </style>

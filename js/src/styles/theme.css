@@ -143,6 +143,8 @@ body {
 	min-height: 100vh;
 	/* Remove 300ms tap delay on mobile */
 	touch-action: manipulation;
+	/* Prevent horizontal overflow */
+	overflow-x: hidden;
 }
 
 /* ==========================================================================
