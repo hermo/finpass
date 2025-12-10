@@ -31,7 +31,7 @@ serve: wasm
 	@echo "Serving on http://localhost:8000"
 	python3 -m http.server 8000 -d wasm
 
-# Serve the vanilla JavaScript version on port 8080
+# Serve the TypeScript version on port 8080
 serve-js: js
 	@echo "Serving on http://localhost:8080"
 	python3 -m http.server 8080 -d js/dist
