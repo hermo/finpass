@@ -1,0 +1,43 @@
+{
+  "manifest_version": 2,
+  "name": "Finpass",
+  "description": "Generate strong, memorable Finnish-word-based passphrases directly in your browser.",
+  "version": "1.0.0",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "finpass@hermo.github.io",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    },
+    "gecko_android": {
+      "strict_min_version": "142.0"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "browser_action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "permissions": [
+    "activeTab",
+    "clipboardWrite",
+    "storage"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "web_accessible_resources": [
+    "words.txt"
+  ],
+  "content_security_policy": "default-src 'self'; script-src 'self'; connect-src 'self'; img-src 'self'; font-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'"
+}

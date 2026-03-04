@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finpass</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <section class="passphrase-section" aria-label="Passphrase">
+      <output id="passphrase-display" class="passphrase-display" aria-live="polite" aria-label="Generated passphrase">
+      </output>
+      <span id="entropy-rating" class="entropy-rating" aria-label="Strength rating"></span>
+    </section>
+
+    <section class="actions-section" aria-label="Actions">
+      <div class="actions-row">
+        <button id="btn-generate" type="button">Generate</button>
+        <button id="btn-copy" type="button">Copy</button>
+        <button id="btn-fill" type="button">Fill</button>
+      </div>
+    </section>
+
+    <section class="settings-section" aria-label="Settings">
+      <div class="setting-row">
+        <label for="input-word-count">Words</label>
+        <select id="input-word-count" aria-label="Word count">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3" selected>3</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label for="input-shorter-words">Shorter words</label>
+        <input id="input-shorter-words" type="checkbox" aria-label="Use shorter words (max 5 characters)">
+      </div>
+    </section>
+
+    <div id="error-message" class="error-message" role="alert" hidden></div>
+  </main>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

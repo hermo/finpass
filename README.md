@@ -6,6 +6,7 @@ language words. It is available as:
 - **Command-line interface (CLI)** for terminal use
 - **WebAssembly (WASM)** module for browser use
 - **TypeScript** web interface with modern ES modules
+- **Browser extension** for Firefox and Chrome
 
 Each generated password also includes a randomly placed 3-character
 alphanumeric section to add entropy.
@@ -60,6 +61,37 @@ bun run dev  # Watch mode - rebuilds on file changes
 - JavaScript enabled
 - Web Crypto API support for secure random number generation
 
+### Browser Extension
+
+The browser extension brings Finpass directly into your browser toolbar. It supports both Firefox (Manifest V2) and Chrome (Manifest V3).
+
+**Features:**
+
+- Generate passphrases from the toolbar popup
+- Copy to clipboard or fill into password fields
+- Configurable word count (1-3) and shorter words option
+- Strength rating display
+- Auto-detected language (English/Finnish)
+- Zero runtime dependencies
+
+**Build and package:**
+
+```bash
+make ext-package-firefox  # Build finpass-firefox.xpi
+make ext-package-chrome   # Build finpass-chrome.zip
+```
+
+**Load for development:**
+
+- **Firefox:** Open `about:debugging` → "This Firefox" → "Load Temporary Add-on" → select `extension/manifest.json` (after running `make ext-firefox`)
+- **Chrome:** Open `chrome://extensions` → enable Developer mode → "Load unpacked" → select the `extension/` directory (after running `make ext-chrome`)
+
+**Run tests:**
+
+```bash
+make ext-test
+```
+
 ### WebAssembly Interface
 
 To use the WASM web interface, build the WASM module and start the local server:
@@ -77,7 +109,7 @@ Then open [http://localhost:8000](http://localhost:8000) in your browser.
 The command-line tool supports the following flags:
 
 | Flag              | Description                              | Default         |
-|-------------------|------------------------------------------|-----------------|
+| ----------------- | ---------------------------------------- | --------------- |
 | `-w COUNT`        | Number of words to generate              | `3`             |
 | `-n COUNT`        | Number of passphrases to generate        | `1`             |
 | `-m MAXLEN`       | Maximum length of each word component    | `0` (unlimited) |
@@ -92,12 +124,14 @@ The command-line tool supports the following flags:
 #### Examples
 
 Generate a single passphrase:
+
 ```
 $ finpass
 palvelivat-8KR-mailit
 ```
 
 Generate with entropy analysis:
+
 ```
 $ finpass -i -profile strong
 36C-kytkea-terkut-koukuta
@@ -108,6 +142,7 @@ Entropy and estimated time to crack using Security-focused apps (bcrypt):
 ```
 
 Generate 4-word passphrase with custom delimiter:
+
 ```
 $ finpass -w 4 -d .
 36C.kytkea.terkut.koukuta
@@ -138,7 +173,7 @@ which have fundamentally different security characteristics.
 **Strength Rating Thresholds:**
 
 | Rating          | Entropy Range | Security Level                           |
-|-----------------|---------------|------------------------------------------|
+| --------------- | ------------- | ---------------------------------------- |
 | Weak (1/5)      | < 35 bits     | Vulnerable to dedicated attacks          |
 | Fair (2/5)      | 35-49 bits    | Acceptable for low-value accounts        |
 | Good (3/5)      | 50-64 bits    | Strong for most purposes                 |
@@ -180,6 +215,7 @@ amd64/arm64 platforms. See the releases for details.
 ## Building from Source
 
 ### Prerequisites
+
 - Go 1.22 or later
 - Make
 - [Bun](https://bun.sh) (for TypeScript web interface)
@@ -188,45 +224,55 @@ amd64/arm64 platforms. See the releases for details.
 
 The provided `Makefile` simplifies the build process.
 
-*   **Build CLI:**
-    ```bash
-    make cli
-    ```
-    This will create the `finpass` binary in the root directory.
+- **Build CLI:**
 
-*   **Build WASM:**
-    ```bash
-    make wasm
-    ```
-    This will create `finpass.wasm` and `wasm_exec.js` in the `wasm/` directory.
+  ```bash
+  make cli
+  ```
 
-*   **Build TypeScript web interface:**
-    ```bash
-    make js
-    ```
-    This will build and bundle the TypeScript source files to the `js/dist/` directory.
+  This will create the `finpass` binary in the root directory.
 
-*   **Test:**
-    ```bash
-    make test
-    ```
+- **Build WASM:**
 
-*   **Clean build artifacts:**
-    ```bash
-    make clean
-    ```
+  ```bash
+  make wasm
+  ```
+
+  This will create `finpass.wasm` and `wasm_exec.js` in the `wasm/` directory.
+
+- **Build TypeScript web interface:**
+
+  ```bash
+  make js
+  ```
+
+  This will build and bundle the TypeScript source files to the `js/dist/` directory.
+
+- **Test:**
+
+  ```bash
+  make test
+  ```
+
+- **Clean build artifacts:**
+  ```bash
+  make clean
+  ```
+
 ### Updating the Wordlist
 
 If you need to update the Finnish wordlist:
 
 1.  **Replace the source wordlist**:
     The wordlist files are located in the `internal/` directory.
+
     ```bash
     # Replace internal/words.txt with your new wordlist (one word per line)
     # Example: download from https://github.com/hugovk/everyfinnishword
     ```
 
 2.  **Regenerate the compressed wordlist**:
+
     ```bash
     gzip -9 -c internal/words.txt > internal/words.txt.gz
     ```
@@ -287,6 +333,7 @@ finpass -i
 ```
 
 To see analysis for all attack profiles:
+
 ```bash
 finpass -all-profiles
 ```

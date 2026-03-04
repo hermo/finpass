@@ -15,3 +15,10 @@ finpass
 /js/favicon-16x16.png
 /js/favicon-32x32.png
 /js/favicon.ico
+
+# Extension
+/extension/node_modules/
+/extension/manifest.json
+/extension/words.txt
+finpass-firefox.xpi
+finpass-chrome.zip
