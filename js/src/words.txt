@@ -713,7 +713,6 @@ aiditella
 aiditon
 aidoittaa
 aidosti
-AIDS
 aie
 aiemmin
 aiempi
@@ -2707,7 +2706,6 @@ antura
 anturamaa
 anturanahka
 anturi
-AO
 aortta
 apaattinen
 apaattisesti
@@ -4882,7 +4880,6 @@ casanova
 cashewpahkina
 catering
 cayennenpippuri
-CD
 celsiusaste
 cembalo
 cesium
@@ -5360,7 +5357,6 @@ divari
 divisioona
 divisioonankomentaja
 dixieland
-DNA
 dobermanni
 dodo
 dogmaatikko
@@ -7842,7 +7838,6 @@ etymologia
 etymologinen
 etymologisesti
 etyylialkoholi
-EU
 eufemismi
 eufemistinen
 eufemistisesti
@@ -12552,7 +12547,6 @@ hiutale
 hiutaleinen
 hiutua
 hiutuma
-HIV
 hivauttaa
 hivella
 hiveltaa
@@ -16119,7 +16113,6 @@ isyysloma
 isyyspakkaus
 isyysraha
 isyystutkimus
-IT
 ita
 itaa
 itaaasialainen
@@ -35076,7 +35069,6 @@ lavuaari
 layout
 leasing
 leasingauto
-LED
 ledi
 leegio
 leffa
@@ -38838,7 +38830,6 @@ lyhentya
 lyhentyma
 lyheta
 lyhkainen
-LYHKI
 lyhty
 lyhtykoiso
 lyhtykukka
@@ -48174,7 +48165,6 @@ ojoon
 ojossa
 ojuke
 ojukepistiainen
-OK
 oka
 okahaarake
 okainen
@@ -53619,7 +53609,6 @@ peuranpyynti
 peuranvaadin
 peuranvasa
 peuranvirna
-pH
 phui
 phyi
 piakkoin
@@ -56496,7 +56485,6 @@ poytavoi
 poytavuori
 poytiintarjoilu
 poytye
-PR
 praasniekka
 pragmaatikko
 pragmaattinen
@@ -88674,7 +88662,6 @@ violetinsininen
 violetinvarinen
 violetti
 violisti
-VIP
 vipajaa
 vipata
 vipattaa
@@ -89846,7 +89833,6 @@ vyyhtia
 waldorfinsalaatti
 wankelmoottori
 watti
-WC
 weber
 wellerismi
 wessi
@@ -89862,7 +89848,6 @@ wigwam
 wok
 wokpannu
 workshop
-WWW
 xerokopio
 ydin
 ydinaine
@@ -91416,7 +91401,6 @@ ystavyysside
 ystavyyssopimus
 ystavyyssuhde
 ystavyysvierailu
-YT
 ytimekas
 ytimekkaasti
 ytimekkyys

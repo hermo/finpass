@@ -120,7 +120,7 @@ make ape-test          # Build and run all c/tests/*.c test binaries
 - Sources live in `c/src/*.c|h`; tests live in `c/tests/`
 - Built with `-Wall -Wextra -Wpedantic -Werror -O2 -std=c11`; all code MUST compile cleanly under this discipline
 - All randomness MUST go through the CSPRNG wrapper in `c/src/rand.c`; `rand()` and `srand()` are FORBIDDEN
-- The Finnish wordlist is zip-embedded in the binary and read at runtime from `/zip/words.txt`
+- The Finnish wordlist is front-coded at build time by `c/tools/wordenc.c` (shared-prefix-length control byte < 32 per word + differing suffix; word bytes are >= 33 so the control byte doubles as delimiter), zip-embedded, and decoded at startup from `/zip/words.fc` by `c/src/words.c`
 - Uses GNU-style `getopt_long` flags, deliberately NOT matching the Go CLI's single-dash long flags
 
 ## Go Code Style Guidelines

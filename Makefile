@@ -80,8 +80,10 @@ ext-test:
 # C / Cosmopolitan APE build
 # =============================================================================
 # Builds the C11 port as a fat Actually Portable Executable (APE) via
-# cosmocc. The Finnish wordlist is embedded as a zip asset readable at
-# runtime from the vfs path /zip/words.txt (see c/src/words.c).
+# cosmocc. The Finnish wordlist is front-coded by c/tools/wordenc.c (one
+# shared-prefix-length byte < 32 per word followed by the differing suffix;
+# the control byte doubles as the delimiter) and embedded as a zip asset
+# readable at runtime from the vfs path /zip/words.fc (see c/src/words.c).
 
 .PHONY: ape ape-test ape-clean
 
@@ -94,13 +96,20 @@ APE_CORE_SRCS = c/src/rand.c c/src/words.c c/src/passphrase.c c/src/entropy.c
 APE_TEST_NAMES = test_rand test_words test_entropy test_passphrase
 APE_TEST_BINS = $(addprefix c/obj/,$(APE_TEST_NAMES))
 
+c/obj/wordenc: c/tools/wordenc.c
+	mkdir -p c/obj
+	$(COSMOCC) $(APE_CFLAGS) $< -o $@
+
+c/obj/words.fc: internal/words.txt c/obj/wordenc
+	c/obj/wordenc internal/words.txt c/obj/words.fc
+
 # Embedded wordlist object. cosmocc's fat-binary linker needs both arch
 # variants present: the x86_64 object here, and an aarch64 twin in a
 # .aarch64/ subdirectory next to it (same basename).
-c/obj/words.o: internal/words.txt
+c/obj/words.o: c/obj/words.fc
 	mkdir -p c/obj/.aarch64
-	$(ZIPOBJ) -a x86_64 -B -o c/obj/words.o internal/words.txt
-	$(ZIPOBJ) -a aarch64 -B -o c/obj/.aarch64/words.o internal/words.txt
+	$(ZIPOBJ) -a x86_64 -B -o c/obj/words.o c/obj/words.fc
+	$(ZIPOBJ) -a aarch64 -B -o c/obj/.aarch64/words.o c/obj/words.fc
 
 ape: c/obj/words.o
 	$(COSMOCC) $(APE_CFLAGS) c/src/main.c $(APE_CORE_SRCS) c/obj/words.o -o finpass.ape

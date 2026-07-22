@@ -9,8 +9,9 @@ typedef struct {
     size_t count;
 } Wordlist;
 
-/* Loads the embedded wordlist from /zip/words.txt. Blank lines are skipped
- * and surrounding whitespace is trimmed. Returns 0 on success, -1 on failure. */
+/* Loads the embedded wordlist from /zip/words.fc, a front-coded stream
+ * produced at build time by c/tools/wordenc.c. Returns 0 on success, -1 on
+ * failure (including a malformed stream). */
 int wordlist_load(Wordlist *wl);
 
 /* Fills *subset with pointers to the words of src whose byte length is

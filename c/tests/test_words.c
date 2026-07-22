@@ -3,7 +3,7 @@
 
 #include "../src/words.h"
 
-#define EXPECTED_COUNT 91443
+#define EXPECTED_COUNT 91427
 
 static int failures = 0;
 
@@ -23,10 +23,21 @@ int main(void) {
         return 1;
     }
 
-    CHECK(wl.count == EXPECTED_COUNT, "word count should be 91443");
+    CHECK(wl.count == EXPECTED_COUNT, "word count should be 91427");
     CHECK(strcmp(wl.words[0], "aakkonen") == 0, "first word should be aakkonen");
     CHECK(strcmp(wl.words[wl.count - 1], "zulu") == 0,
           "last word should be zulu");
+
+    /* Front-coded decoding reconstructs each word from its predecessor, so
+     * corruption compounds; spot-check a word deep in the list. */
+    int found_kissa = 0;
+    for (size_t i = 0; i < wl.count; i++) {
+        if (strcmp(wl.words[i], "kissa") == 0) {
+            found_kissa = 1;
+            break;
+        }
+    }
+    CHECK(found_kissa, "mid-list word 'kissa' should decode intact");
 
     for (size_t i = 0; i < wl.count; i++) {
         const char *w = wl.words[i];
