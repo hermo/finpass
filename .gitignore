@@ -22,3 +22,9 @@ finpass
 /extension/words.txt
 finpass-firefox.xpi
 finpass-chrome.zip
+
+# C / Cosmopolitan APE
+/finpass.ape
+/finpass.ape.aarch64.elf
+/finpass.ape.com.dbg
+/c/obj/

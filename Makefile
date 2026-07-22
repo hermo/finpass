@@ -75,3 +75,48 @@ ext: ext-package-firefox ext-package-chrome
 # Run extension tests
 ext-test:
 	cd extension && npx vitest --run
+
+# =============================================================================
+# C / Cosmopolitan APE build
+# =============================================================================
+# Builds the C11 port as a fat Actually Portable Executable (APE) via
+# cosmocc. The Finnish wordlist is embedded as a zip asset readable at
+# runtime from the vfs path /zip/words.txt (see c/src/words.c).
+
+.PHONY: ape ape-test ape-clean
+
+COSMOCC ?= cosmocc
+ZIPOBJ ?= $(dir $(COSMOCC))zipobj
+APE_CFLAGS = -Wall -Wextra -Wpedantic -Werror -O2 -std=c11 \
+	-DFINPASS_VERSION='"$(shell git describe --tags --always --dirty 2>/dev/null || echo devel)"'
+
+APE_CORE_SRCS = c/src/rand.c c/src/words.c c/src/passphrase.c c/src/entropy.c
+APE_TEST_NAMES = test_rand test_words test_entropy test_passphrase
+APE_TEST_BINS = $(addprefix c/obj/,$(APE_TEST_NAMES))
+
+# Embedded wordlist object. cosmocc's fat-binary linker needs both arch
+# variants present: the x86_64 object here, and an aarch64 twin in a
+# .aarch64/ subdirectory next to it (same basename).
+c/obj/words.o: internal/words.txt
+	mkdir -p c/obj/.aarch64
+	$(ZIPOBJ) -a x86_64 -B -o c/obj/words.o internal/words.txt
+	$(ZIPOBJ) -a aarch64 -B -o c/obj/.aarch64/words.o internal/words.txt
+
+ape: c/obj/words.o
+	$(COSMOCC) $(APE_CFLAGS) c/src/main.c $(APE_CORE_SRCS) c/obj/words.o -o finpass.ape
+
+# Each test binary links the non-main core sources plus the embedded
+# wordlist object, so any test may exercise wordlist_load() if it needs to.
+c/obj/test_%: c/tests/test_%.c $(APE_CORE_SRCS) c/obj/words.o
+	mkdir -p c/obj
+	$(COSMOCC) $(APE_CFLAGS) $< $(APE_CORE_SRCS) c/obj/words.o -o $@
+
+ape-test: $(APE_TEST_BINS)
+	@for t in $(APE_TEST_BINS); do \
+		echo "Running $$t"; \
+		$$t || exit 1; \
+	done
+
+ape-clean:
+	rm -f finpass.ape
+	rm -rf c/obj
