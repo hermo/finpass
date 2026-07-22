@@ -4,13 +4,14 @@ This document provides build instructions and code style guidelines for AI codin
 
 ## Repository Structure
 
-This is a **monorepo** containing three independent implementations of the same passphrase generation algorithm:
+This is a **monorepo** containing four independent implementations of the same passphrase generation algorithm:
 
 1. **Go CLI App** - Command-line tool (`main.go`, `internal/`, `wasm/`)
 2. **JavaScript Web App** - Browser-based interface (`js/src/components/`, `js/src/lib/`)
 3. **Browser Extension** - Firefox/Chrome extension (`extension/`)
+4. **C CLI App** - Single-file Cosmopolitan APE binary (`c/src/`, `c/tests/`)
 
-Both implementations share the same algorithm but are wholly separate codebases with no shared code between them.
+All implementations share the same algorithm but are wholly separate codebases with no shared code between them.
 
 ## Build, Lint & Test Commands
 
@@ -98,6 +99,29 @@ make ext-test             # Run extension tests via vitest
 - Test dependencies (vitest, fast-check) are dev-only; the shipped extension has zero npm dependencies
 - Firefox manifest (`manifest.v2.json`) includes `browser_specific_settings` with gecko ID and `data_collection_permissions`
 - Chrome manifest (`manifest.v3.json`) uses Manifest V3 with service worker background
+
+### C (Cosmopolitan APE)
+
+**Build:**
+
+```bash
+make ape COSMOCC=/path/to/cosmocc  # Build finpass.ape (single-file APE binary)
+make ape-clean                     # Remove ape build artifacts
+```
+
+**Test:**
+
+```bash
+make ape-test          # Build and run all c/tests/*.c test binaries
+```
+
+**Notes:**
+
+- Sources live in `c/src/*.c|h`; tests live in `c/tests/`
+- Built with `-Wall -Wextra -Wpedantic -Werror -O2 -std=c11`; all code MUST compile cleanly under this discipline
+- All randomness MUST go through the CSPRNG wrapper in `c/src/rand.c`; `rand()` and `srand()` are FORBIDDEN
+- The Finnish wordlist is zip-embedded in the binary and read at runtime from `/zip/words.txt`
+- Uses GNU-style `getopt_long` flags, deliberately NOT matching the Go CLI's single-dash long flags
 
 ## Go Code Style Guidelines
 

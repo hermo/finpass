@@ -7,6 +7,7 @@ language words. It is available as:
 - **WebAssembly (WASM)** module for browser use
 - **TypeScript** web interface with modern ES modules
 - **Browser extension** for Firefox and Chrome
+- **Single-file multi-platform C binary (Cosmopolitan APE)**
 
 Each generated password also includes a randomly placed 3-character
 alphanumeric section to add entropy.
@@ -148,6 +149,56 @@ $ finpass -w 4 -d .
 36C.kytkea.terkut.koukuta
 ```
 
+### C (Cosmopolitan APE)
+
+The C implementation is a single-file binary built with
+[Cosmopolitan libc](https://github.com/jart/cosmopolitan) into an Actually
+Portable Executable (APE). The same `finpass.ape` file runs unmodified on
+Linux, macOS and Windows, on both x86-64 and arm64 — no separate builds or
+installers needed. The Finnish wordlist is embedded directly in the binary.
+
+**Build:**
+
+```bash
+make ape COSMOCC=/path/to/cosmocc
+```
+
+Get `cosmocc` from [cosmo.zip](https://cosmo.zip) or the
+[Cosmopolitan releases](https://github.com/jart/cosmopolitan). This produces
+`./finpass.ape` in the repository root.
+
+**Run:**
+
+```bash
+./finpass.ape -i -p strong
+```
+
+**Test:**
+
+```bash
+make ape-test
+```
+
+#### Flags
+
+The C CLI follows standard GNU `getopt_long` conventions (`--long-flag`
+double-dash, short flags combinable), which differs from the Go CLI's
+single-dash long flags shown above:
+
+| Flag                    | Description                               | Default         |
+| ----------------------- | ------------------------------------------ | --------------- |
+| `-w`, `--words N`        | Number of words to generate (1-6)          | `3`             |
+| `-n`, `--count N`        | Number of passphrases to generate          | `1`             |
+| `-m`, `--max-length N`   | Maximum length of each word component      | `0` (unlimited) |
+| `-d`, `--delimiter S`    | Delimiter between components               | `-`             |
+| `-i`, `--info`           | Show entropy and time-to-crack analysis    |                 |
+| `-p`, `--profile NAME`   | Attack profile for entropy calculation     | `standard`      |
+| `-s`, `--custom-speed N` | Custom attack speed (guesses per second)   |                 |
+| `-a`, `--all-profiles`   | Show entropy for all attack profiles       |                 |
+| `--list-profiles`        | List all available attack profiles         |                 |
+| `-V`, `--version`        | Print version and exit                     |                 |
+| `-h`, `--help`           | Show help message                          |                 |
+
 ## Attack Profiles
 
 Available profiles for entropy calculation:
@@ -247,6 +298,16 @@ The provided `Makefile` simplifies the build process.
   ```
 
   This will build and bundle the TypeScript source files to the `js/dist/` directory.
+
+- **Build C (Cosmopolitan APE):**
+
+  ```bash
+  make ape COSMOCC=/path/to/cosmocc
+  ```
+
+  This will create the `finpass.ape` binary in the root directory. See
+  [C (Cosmopolitan APE)](#c-cosmopolitan-ape) above for details and where to
+  get `cosmocc`.
 
 - **Test:**
 
