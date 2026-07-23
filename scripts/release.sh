@@ -52,6 +52,9 @@ fi
 SIGNER_ID="${FINPASS_SIGNER_ID:-release@mirko.fi}"
 ALLOWED_SIGNERS="finpass-allowed-signers"
 TAP_REPO="${FINPASS_TAP_REPO:-git@github.com:hermo/homebrew-tap.git}"
+# Releases are published on GitHub, which is a secondary remote; origin is the
+# private Forgejo. The tag must be pushed to both.
+GITHUB_REMOTE="${FINPASS_GITHUB_REMOTE:-github}"
 DIST=dist
 
 # --- Preflight ---------------------------------------------------------------
@@ -72,6 +75,8 @@ done
 if (( ! DRY_RUN )); then
 	command -v gh >/dev/null || fail "gh not installed"
 	gh auth status >/dev/null || fail "gh not authenticated"
+	git remote get-url "$GITHUB_REMOTE" >/dev/null 2>&1 \
+		|| fail "remote $GITHUB_REMOTE not configured (set FINPASS_GITHUB_REMOTE)"
 fi
 
 # --- Build -------------------------------------------------------------------
@@ -125,6 +130,7 @@ read -r -p "Tag $VERSION_TAG, push, create GitHub release and update brew tap? [
 
 git tag -a "$VERSION_TAG" -m "finpass $VERSION_TAG"
 git push origin "$VERSION_TAG"
+git push "$GITHUB_REMOTE" "$VERSION_TAG"
 
 gh release create "$VERSION_TAG" \
 	"$DIST/finpass.ape" "$DIST"/*.deb "$DIST"/*.rpm \
@@ -147,8 +153,13 @@ class Finpass < Formula
   sha256 "$APE_SHA256"
   license "MIT"
 
+  # The APE binary is not ELF, so Homebrew's Linux cleaner would strip its
+  # exec bit (it only recognizes shebang scripts and ELF as executables).
+  skip_clean "bin/finpass"
+
   def install
     bin.install "finpass.ape" => "finpass"
+    chmod 0755, bin/"finpass"
   end
 
   test do
