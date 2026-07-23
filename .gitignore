@@ -3,8 +3,6 @@ finpass
 /.vscode
 /.envrc
 /.roo/
-/wasm/finpass.wasm
-/wasm/wasm_exec.js
 
 # JavaScript/TypeScript
 /js/dist/

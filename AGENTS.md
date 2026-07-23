@@ -6,7 +6,7 @@ This document provides build instructions and code style guidelines for AI codin
 
 This is a **monorepo** containing four independent implementations of the same passphrase generation algorithm:
 
-1. **Go CLI App** - Command-line tool (`main.go`, `internal/`, `wasm/`)
+1. **Go CLI App** - Command-line tool (`main.go`, `internal/`)
 2. **JavaScript Web App** - Browser-based interface (`js/src/components/`, `js/src/lib/`)
 3. **Browser Extension** - Firefox/Chrome extension (`extension/`)
 4. **C CLI App** - Single-file Cosmopolitan APE binary (`c/src/`, `c/tests/`)
@@ -21,7 +21,6 @@ All implementations share the same algorithm but are wholly separate codebases w
 
 ```bash
 make cli              # Build the finpass CLI binary
-make wasm             # Build WebAssembly version
 make clean            # Remove all build artifacts
 ```
 
@@ -61,7 +60,6 @@ make serve-js         # Serve on http://localhost:8080
 
 ```bash
 ./test-randomness.sh  # Run statistical randomness analysis (requires finpass binary)
-make serve            # Serve WASM version on http://localhost:8000
 ```
 
 ### CI/CD
@@ -129,7 +127,6 @@ make ape-test          # Build and run all c/tests/*.c test binaries
 
 - `internal/` - Core implementation code (passphrase generation, entropy, wordlist)
 - `internal/entropy/` - Entropy and strength calculations
-- `wasm/` - WebAssembly bridge
 - Each package MUST have a single, clear responsibility
 
 ### Imports

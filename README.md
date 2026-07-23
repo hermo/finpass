@@ -4,7 +4,6 @@ This project provides a tool to generate memorable passphrases using Finnish
 language words. It is available as:
 
 - **Command-line interface (CLI)** for terminal use
-- **WebAssembly (WASM)** module for browser use
 - **TypeScript** web interface with modern ES modules
 - **Browser extension** for Firefox and Chrome
 - **Single-file multi-platform C binary (Cosmopolitan APE)**
@@ -94,16 +93,6 @@ make ext-package-chrome   # Build finpass-chrome.zip
 ```bash
 make ext-test
 ```
-
-### WebAssembly Interface
-
-To use the WASM web interface, build the WASM module and start the local server:
-
-```bash
-make serve
-```
-
-Then open [http://localhost:8000](http://localhost:8000) in your browser.
 
 ### Command-Line Interface (CLI)
 
@@ -297,14 +286,6 @@ The provided `Makefile` simplifies the build process.
   ```
 
   This will create the `finpass` binary in the root directory.
-
-- **Build WASM:**
-
-  ```bash
-  make wasm
-  ```
-
-  This will create `finpass.wasm` and `wasm_exec.js` in the `wasm/` directory.
 
 - **Build TypeScript web interface:**
 

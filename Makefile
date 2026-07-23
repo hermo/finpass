@@ -1,11 +1,7 @@
-.PHONY: favicon cli wasm js test serve serve-js clean ext-icons ext-sync ext-firefox ext-chrome ext-test ext-package-firefox ext-package-chrome ape-container
+.PHONY: favicon cli js test serve-js clean ext-icons ext-sync ext-firefox ext-chrome ext-test ext-package-firefox ext-package-chrome ape-container
 
 cli:
 	go build -ldflags="-s -w" -o finpass
-
-wasm:
-	GOTOOLCHAIN=local GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o wasm/finpass.wasm ./wasm
-	cp "$$(go env GOROOT)/lib/wasm/wasm_exec.js" ./wasm/
 
 favicon:
 	gm convert js/favicon.svg -background none -define icon:auto-resize=48,32,16 js/favicon.ico
@@ -26,18 +22,13 @@ js: favicon
 test:
 	go test ./...
 
-# Serve the WASM version on port 8000
-serve: wasm
-	@echo "Serving on http://localhost:8000"
-	python3 -m http.server 8000 -d wasm
-
 # Serve the TypeScript version on port 8080
 serve-js: js
 	@echo "Serving on http://localhost:8080"
 	python3 -m http.server 8080 -d js/dist
 
 clean:
-	rm -f finpass wasm/finpass.wasm wasm/wasm_exec.js js/dist/* extension/manifest.json finpass-firefox.xpi finpass-chrome.zip
+	rm -f finpass js/dist/* extension/manifest.json finpass-firefox.xpi finpass-chrome.zip
 
 # Generate extension icons from the website favicon SVG
 ext-icons:
