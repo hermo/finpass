@@ -1,4 +1,4 @@
-.PHONY: favicon cli wasm js test serve serve-js clean ext-icons ext-sync ext-firefox ext-chrome ext-test ext-package-firefox ext-package-chrome
+.PHONY: favicon cli wasm js test serve serve-js clean ext-icons ext-sync ext-firefox ext-chrome ext-test ext-package-firefox ext-package-chrome ape-container
 
 cli:
 	go build -ldflags="-s -w" -o finpass
@@ -113,6 +113,17 @@ c/obj/words.o: c/obj/words.fc
 
 ape: c/obj/words.o
 	$(COSMOCC) $(APE_CFLAGS) c/src/main.c $(APE_CORE_SRCS) c/obj/words.o -o finpass.ape
+
+CONTAINER_ENGINE ?= podman
+
+# Build finpass.ape inside a container (no local cosmocc needed) and copy it out
+ape-container:
+	$(CONTAINER_ENGINE) build -t finpass-builder .
+	@cid=$$($(CONTAINER_ENGINE) create finpass-builder); \
+	$(CONTAINER_ENGINE) cp $$cid:/app/finpass.ape ./finpass.ape; \
+	rc=$$?; \
+	$(CONTAINER_ENGINE) rm -f $$cid >/dev/null; \
+	exit $$rc
 
 # Each test binary links the non-main core sources plus the embedded
 # wordlist object, so any test may exercise wordlist_load() if it needs to.

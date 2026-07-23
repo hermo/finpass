@@ -62,9 +62,11 @@ bun run dev  # Watch mode - rebuilds on file changes
 - JavaScript enabled
 - Web Crypto API support for secure random number generation
 
-### Browser Extension
+### Browser Extension (WIP)
 
 The browser extension brings Finpass directly into your browser toolbar. It supports both Firefox (Manifest V2) and Chrome (Manifest V3).
+
+The extension works but is still rather crude.
 
 **Features:**
 
@@ -159,13 +161,25 @@ installers needed. The Finnish wordlist is embedded directly in the binary.
 
 **Build:**
 
+The recommended way to build is inside a container — no local `cosmocc`
+toolchain needed, only Podman (or Docker):
+
+```bash
+make ape-container
+```
+
+This builds the toolchain image from the `Dockerfile` and copies the resulting
+`finpass.ape` to the repository root. Set `CONTAINER_ENGINE=docker` to use
+Docker instead of Podman.
+
+Alternatively, if you have `cosmocc` installed locally, you can build directly:
+
 ```bash
 make ape COSMOCC=/path/to/cosmocc
 ```
 
 Get `cosmocc` from [cosmo.zip](https://cosmo.zip) or the
-[Cosmopolitan releases](https://github.com/jart/cosmopolitan). This produces
-`./finpass.ape` in the repository root.
+[Cosmopolitan releases](https://github.com/jart/cosmopolitan).
 
 **Run:**
 
@@ -270,6 +284,7 @@ amd64/arm64 platforms. See the releases for details.
 - Go 1.22 or later
 - Make
 - [Bun](https://bun.sh) (for TypeScript web interface)
+- [Podman](https://podman.io) or Docker (for the C/APE container build)
 
 ### Build Instructions
 
@@ -302,12 +317,13 @@ The provided `Makefile` simplifies the build process.
 - **Build C (Cosmopolitan APE):**
 
   ```bash
-  make ape COSMOCC=/path/to/cosmocc
+  make ape-container
   ```
 
-  This will create the `finpass.ape` binary in the root directory. See
-  [C (Cosmopolitan APE)](#c-cosmopolitan-ape) above for details and where to
-  get `cosmocc`.
+  This builds `finpass.ape` inside a container (Podman or Docker required, no
+  local toolchain needed) and copies it to the root directory. See
+  [C (Cosmopolitan APE)](#c-cosmopolitan-ape) above for details, including how
+  to build directly with a local `cosmocc`.
 
 - **Test:**
 
