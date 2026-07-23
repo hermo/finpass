@@ -4,7 +4,7 @@ Generate memorable passphrases from Finnish words.
 
 ```
 $ finpass
-palvelivat-8KR-mailit
+vedike-palvelivat-8KR-mailit
 ```
 
 Each passphrase is built from randomly chosen Finnish words plus a randomly
@@ -49,7 +49,7 @@ downloaded artifacts.
 
 ```
 $ finpass -w 4 -d .
-36C.kytkea.terkut.koukuta
+36C.kytkea.rosvota.terkut.koukuta
 
 $ finpass -i -p strong
 36C-kytkea-terkut-koukuta
