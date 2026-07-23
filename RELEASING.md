@@ -4,7 +4,7 @@ Releases are built locally and published with `scripts/release.sh`. A release
 ships one binary — the Cosmopolitan APE build, which runs on Linux, macOS and
 Windows on amd64 and arm64 — plus arch-independent deb/rpm packages, a
 `SHA256SUMS` file, and an SSH signature over it made with a YubiKey-resident
-key. The Homebrew tap (`hermo/homebrew-finpass`) is updated as part of the
+key. The Homebrew tap (`hermo/homebrew-tap`) is updated as part of the
 release.
 
 ## Trust model

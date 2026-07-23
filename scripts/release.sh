@@ -51,7 +51,7 @@ if [[ -z "$SIGNING_KEY" ]]; then
 fi
 SIGNER_ID="${FINPASS_SIGNER_ID:-release@mirko.fi}"
 ALLOWED_SIGNERS="finpass-allowed-signers"
-TAP_REPO="${FINPASS_TAP_REPO:-git@github.com:hermo/homebrew-finpass.git}"
+TAP_REPO="${FINPASS_TAP_REPO:-git@github.com:hermo/homebrew-tap.git}"
 DIST=dist
 
 # --- Preflight ---------------------------------------------------------------

@@ -25,7 +25,7 @@ finpass is available as:
 **Homebrew:**
 
 ```bash
-brew install hermo/finpass/finpass
+brew install hermo/tap/finpass
 ```
 
 **deb/rpm:** arch-independent packages are attached to each
