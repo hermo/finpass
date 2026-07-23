@@ -1,0 +1,20 @@
+# nfpm config for deb/rpm packages of the APE binary.
+# The APE binary runs on both amd64 and arm64, so a single arch-independent
+# package ("all"/"noarch") covers every Linux target.
+# Used by scripts/release.sh, which exports FINPASS_VERSION.
+name: finpass
+arch: all
+platform: linux
+version: ${FINPASS_VERSION}
+maintainer: Mirko Grönroos <mirko@mirko.fi>
+vendor: Mirko Grönroos
+homepage: https://github.com/hermo/finpass
+description: finpass generates passphrases using Finnish language words
+license: MIT
+contents:
+  - src: ./dist/finpass.ape
+    dst: /usr/bin/finpass
+    file_info:
+      mode: 0755
+scripts:
+  postinstall: ./scripts/nfpm-postinstall.sh

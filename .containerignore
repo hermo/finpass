@@ -1,0 +1,8 @@
+# Whitelist: the Dockerfile only COPYs Makefile, c/ and internal/words.txt,
+# so exclude everything else from the build context.
+*
+!Makefile
+!c
+!internal/words.txt
+# Local build artifacts from `make ape` / `make ape-test`
+c/obj

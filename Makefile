@@ -79,9 +79,18 @@ ext-test:
 .PHONY: ape ape-test ape-clean
 
 COSMOCC ?= cosmocc
+# zipobj lives next to cosmocc; when COSMOCC is a bare command (no slash),
+# resolve zipobj from PATH too instead of $(dir) yielding "./"
+ifeq ($(findstring /,$(COSMOCC)),)
+ZIPOBJ ?= zipobj
+else
 ZIPOBJ ?= $(dir $(COSMOCC))zipobj
+endif
+# Overridable so container builds (no .git available) can stamp the real
+# version: make ape APE_VERSION=v1.6.0
+APE_VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo devel)
 APE_CFLAGS = -Wall -Wextra -Wpedantic -Werror -O2 -std=c11 \
-	-DFINPASS_VERSION='"$(shell git describe --tags --always --dirty 2>/dev/null || echo devel)"'
+	-DFINPASS_VERSION='"$(APE_VERSION)"'
 
 APE_CORE_SRCS = c/src/rand.c c/src/words.c c/src/passphrase.c c/src/entropy.c
 APE_TEST_NAMES = test_rand test_words test_entropy test_passphrase
@@ -109,7 +118,7 @@ CONTAINER_ENGINE ?= podman
 
 # Build finpass.ape inside a container (no local cosmocc needed) and copy it out
 ape-container:
-	$(CONTAINER_ENGINE) build -t finpass-builder .
+	$(CONTAINER_ENGINE) build --build-arg FINPASS_VERSION="$(APE_VERSION)" -t finpass-builder .
 	@cid=$$($(CONTAINER_ENGINE) create finpass-builder); \
 	$(CONTAINER_ENGINE) cp $$cid:/app/finpass.ape ./finpass.ape; \
 	rc=$$?; \

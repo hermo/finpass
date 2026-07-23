@@ -1,131 +1,57 @@
-# finpass: Finnish Passphrase Generator
+# finpass
 
-This project provides a tool to generate memorable passphrases using Finnish
-language words. It is available as:
-
-- **Command-line interface (CLI)** for terminal use
-- **TypeScript** web interface with modern ES modules
-- **Browser extension** for Firefox and Chrome
-- **Single-file multi-platform C binary (Cosmopolitan APE)**
-
-Each generated password also includes a randomly placed 3-character
-alphanumeric section to add entropy.
-
-## Usage
-
-### TypeScript Web Interface
-
-The TypeScript implementation provides a modern, type-safe web interface built
-with Bun and bundled for optimal performance.
-
-**To build and run the TypeScript version:**
-
-```bash
-make serve-js
-```
-
-Then open [http://localhost:8080](http://localhost:8080) in your browser.
-
-Alternatively, you can serve the [`js/dist/`](js/dist/) directory with any static HTTP
-server:
-
-```bash
-# Using Python's built-in HTTP server
-python3 -m http.server 8080 -d js/dist
-
-# Using Node.js http-server
-npx http-server js/dist -p 8080
-```
-
-**Development:**
-
-```bash
-cd js
-bun run dev  # Watch mode - rebuilds on file changes
-```
-
-**Features:**
-
-- TypeScript with strict type checking
-- Modern Web Components architecture
-- Bundled and minified for optimal performance
-- Content-hashed filenames for cache-busting
-- Bilingual support (English/Finnish)
-- Real-time entropy calculations
-- Responsive design for mobile and desktop
-- Works in all modern browsers
-
-**Browser Requirements:**
-
-- Modern browsers (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)
-- JavaScript enabled
-- Web Crypto API support for secure random number generation
-
-### Browser Extension (WIP)
-
-The browser extension brings Finpass directly into your browser toolbar. It supports both Firefox (Manifest V2) and Chrome (Manifest V3).
-
-The extension works but is still rather crude.
-
-**Features:**
-
-- Generate passphrases from the toolbar popup
-- Copy to clipboard or fill into password fields
-- Configurable word count (1-3) and shorter words option
-- Strength rating display
-- Auto-detected language (English/Finnish)
-- Zero runtime dependencies
-
-**Build and package:**
-
-```bash
-make ext-package-firefox  # Build finpass-firefox.xpi
-make ext-package-chrome   # Build finpass-chrome.zip
-```
-
-**Load for development:**
-
-- **Firefox:** Open `about:debugging` → "This Firefox" → "Load Temporary Add-on" → select `extension/manifest.json` (after running `make ext-firefox`)
-- **Chrome:** Open `chrome://extensions` → enable Developer mode → "Load unpacked" → select the `extension/` directory (after running `make ext-chrome`)
-
-**Run tests:**
-
-```bash
-make ext-test
-```
-
-### Command-Line Interface (CLI)
-
-#### Flags
-
-The command-line tool supports the following flags:
-
-| Flag              | Description                              | Default         |
-| ----------------- | ---------------------------------------- | --------------- |
-| `-w COUNT`        | Number of words to generate              | `3`             |
-| `-n COUNT`        | Number of passphrases to generate        | `1`             |
-| `-m MAXLEN`       | Maximum length of each word component    | `0` (unlimited) |
-| `-d DELIM`        | Delimiter between components             | `-`             |
-| `-i`              | Show entropy and time-to-crack analysis  |                 |
-| `-profile NAME`   | Attack profile for entropy calculation   | `standard`      |
-| `-list-profiles`  | List all available attack profiles       |                 |
-| `-all-profiles`   | Show entropy for all attack profiles     |                 |
-| `-custom-speed N` | Custom attack speed (guesses per second) |                 |
-| `-version`, `-V`  | Print version and exit                   |                 |
-
-#### Examples
-
-Generate a single passphrase:
+Generate memorable passphrases from Finnish words.
 
 ```
 $ finpass
 palvelivat-8KR-mailit
 ```
 
-Generate with entropy analysis:
+Each passphrase is built from randomly chosen Finnish words plus a randomly
+placed 3-character alphanumeric segment for extra entropy. The wordlist
+(~91k words) is a subset of
+[everyfinnishword](https://github.com/hugovk/everyfinnishword).
+
+finpass is available as:
+
+- a **CLI binary** — a single-file [Cosmopolitan](https://github.com/jart/cosmopolitan)
+  APE executable that runs unmodified on Linux, macOS and Windows (amd64 and arm64)
+- a **web interface** (TypeScript)
+- a **browser extension** for Firefox and Chrome (work in progress)
+- a **Go implementation**, buildable from source
+
+## Installation
+
+**Homebrew:**
+
+```bash
+brew install hermo/finpass/finpass
+```
+
+**deb/rpm:** arch-independent packages are attached to each
+[release](https://github.com/hermo/finpass/releases) and install the binary as
+`/usr/bin/finpass`.
+
+**Standalone binary:** download `finpass.ape` from a
+[release](https://github.com/hermo/finpass/releases), then:
+
+```bash
+chmod +x finpass.ape   # Linux / macOS
+./finpass.ape
+```
+
+On Windows, rename `finpass.ape` to `finpass.exe` and run it.
+
+See [Verifying a release](#verifying-a-release) to check the authenticity of
+downloaded artifacts.
+
+## Usage
 
 ```
-$ finpass -i -profile strong
+$ finpass -w 4 -d .
+36C.kytkea.terkut.koukuta
+
+$ finpass -i -p strong
 36C-kytkea-terkut-koukuta
 Entropy and estimated time to crack using Security-focused apps (bcrypt):
 * Brute-force:           154.2 bits (1e46y)
@@ -133,268 +59,223 @@ Entropy and estimated time to crack using Security-focused apps (bcrypt):
 * Known wordlist:         58.6 bits (7y)
 ```
 
-Generate 4-word passphrase with custom delimiter:
+| Flag                     | Description                              | Default         |
+| ------------------------ | ---------------------------------------- | --------------- |
+| `-w`, `--words N`        | Number of words (1–6)                    | `3`             |
+| `-n`, `--count N`        | Number of passphrases to generate        | `1`             |
+| `-m`, `--max-length N`   | Maximum length of each word component    | `0` (unlimited) |
+| `-d`, `--delimiter S`    | Delimiter between components             | `-`             |
+| `-i`, `--info`           | Show entropy and time-to-crack analysis  |                 |
+| `-p`, `--profile NAME`   | Attack profile for entropy calculation   | `standard`      |
+| `-s`, `--custom-speed N` | Custom attack speed (guesses per second) |                 |
+| `-a`, `--all-profiles`   | Show entropy for all attack profiles     |                 |
+| `--list-profiles`        | List all available attack profiles       |                 |
+| `-V`, `--version`        | Print version and exit                   |                 |
+| `-h`, `--help`           | Show help message                        |                 |
 
-```
-$ finpass -w 4 -d .
-36C.kytkea.terkut.koukuta
-```
+The Go implementation accepts the same options in Go's single-dash flag style
+(`-profile`, `-all-profiles`, `-list-profiles`, `-custom-speed`); the released
+binary follows GNU `getopt_long` conventions as shown above.
 
-### C (Cosmopolitan APE)
+### Attack profiles
 
-The C implementation is a single-file binary built with
-[Cosmopolitan libc](https://github.com/jart/cosmopolitan) into an Actually
-Portable Executable (APE). The same `finpass.ape` file runs unmodified on
-Linux, macOS and Windows, on both x86-64 and arm64 — no separate builds or
-installers needed. The Finnish wordlist is embedded directly in the binary.
+Entropy analysis estimates time-to-crack against a chosen attacker model:
 
-**Build:**
+- `legacy` — weak legacy hashes (NTLM)
+- `weak` — fast modern hashes (SHA256)
+- `standard` — typical web app security (PBKDF2)
+- `strong` — security-focused apps (bcrypt)
+- `paranoid` — maximum security (scrypt)
+- `online` — rate-limited online attacks
 
-The recommended way to build is inside a container — no local `cosmocc`
-toolchain needed, only Podman (or Docker):
+## Verifying a release
+
+Every release includes a `SHA256SUMS` file and a detached SSH signature over
+it (`SHA256SUMS.sig`), made with a key held on a hardware security token —
+the private keys never exist on any computer. The set of valid release keys
+is published as [`finpass-allowed-signers`](finpass-allowed-signers) in this
+repository; that file, not any single key, is the trust root, so keys can be
+rotated without breaking verification.
+
+Verification needs no extra tools — just OpenSSH 8.2 or later (`ssh-keygen`),
+which is preinstalled on Linux, macOS and Windows 10+.
+
+**1. Download the artifact, the checksums, and the signature** (example for
+the standalone binary; same procedure for the deb/rpm packages):
 
 ```bash
-make ape-container
+V=v1.6.0  # the release you are verifying
+curl -fsSLO "https://github.com/hermo/finpass/releases/download/$V/finpass.ape"
+curl -fsSLO "https://github.com/hermo/finpass/releases/download/$V/SHA256SUMS"
+curl -fsSLO "https://github.com/hermo/finpass/releases/download/$V/SHA256SUMS.sig"
+curl -fsSLO "https://raw.githubusercontent.com/hermo/finpass/main/finpass-allowed-signers"
 ```
 
-This builds the toolchain image from the `Dockerfile` and copies the resulting
-`finpass.ape` to the repository root. Set `CONTAINER_ENGINE=docker` to use
-Docker instead of Podman.
+**2. Check that `SHA256SUMS` was signed by a current release key:**
 
-Alternatively, if you have `cosmocc` installed locally, you can build directly:
+```bash
+ssh-keygen -Y verify -f finpass-allowed-signers -I release@mirko.fi \
+    -n file -s SHA256SUMS.sig < SHA256SUMS
+```
+
+Expected output (the key type and fingerprint vary by which hardware token
+signed the release):
+
+```
+Good "file" signature for release@mirko.fi with SK-ED25519 key SHA256:...
+```
+
+Anything else — `Could not verify signature`, a different principal, a
+non-zero exit code — means the file is not authentic; don't run the binary.
+
+**3. Check that the downloaded artifacts match the signed checksums:**
+
+```bash
+sha256sum --check --ignore-missing SHA256SUMS
+```
+
+On macOS use `shasum -a 256 --check --ignore-missing SHA256SUMS`. On Windows
+(PowerShell), compare manually:
+
+```powershell
+(Get-FileHash finpass.ape -Algorithm SHA256).Hash
+Select-String finpass.ape SHA256SUMS
+```
+
+Step 2 proves the checksum list is authentic; step 3 proves your downloads
+match it. Both must pass.
+
+**Fetching the trust root securely:** `finpass-allowed-signers` is served
+from this repository over HTTPS. For extra assurance, cross-check it against
+the copy in a git clone, or — if you verified releases before v1.6.0 with
+minisign — verify the transition signature `finpass-allowed-signers.minisig`
+attached to the v1.6.0 release with the long-standing minisign public key.
+
+## Security design
+
+### Entropy calculation
+
+Three complementary methods, from most to least optimistic:
+
+1. **Brute-force entropy** — the attacker has no knowledge of the generation
+   method and must try all character combinations
+2. **Pattern-aware entropy** — the attacker knows the pattern but not the
+   wordlist
+3. **Wordlist entropy** (worst case) — the attacker has the exact wordlist
+   and full algorithm knowledge
+
+Strength ratings use the worst-case wordlist entropy as the baseline, so they
+hold even against an attacker with complete knowledge of the system. Even
+then, the random placement of the alphanumeric segment contributes positional
+entropy that cannot be bypassed.
+
+### Strength rating
+
+Generated passphrases are rated on a 5-level scale. The thresholds are
+calibrated for randomly-generated passphrases, not user-chosen passwords:
+
+| Rating          | Entropy   | Security level                    |
+| --------------- | --------- | --------------------------------- |
+| Weak (1/5)      | < 35 bits | Vulnerable to dedicated attacks   |
+| Fair (2/5)      | 35–49 bits | Acceptable for low-value accounts |
+| Good (3/5)      | 50–64 bits | Strong for most purposes          |
+| Strong (4/5)    | 65–84 bits | Very strong, exceeds requirements |
+| Excellent (5/5) | 85+ bits  | Extremely strong                  |
+
+With proper password hashing (bcrypt, scrypt, or Argon2), passphrases rated
+"good" or higher are secure against practical offline attacks. Use `-i` to
+see the rating and entropy analysis on the CLI; the web interface shows the
+rating for every generated passphrase.
+
+### NIST SP 800-63B
+
+The default 3-word configuration generates passphrases of 35–45 characters,
+well beyond the minimums in
+[NIST SP 800-63B](https://pages.nist.gov/800-63-4/sp800-63b.html)
+(15+ characters for single-factor, 8+ for multi-factor authentication),
+with no reliance on artificial composition rules — length over complexity.
+
+## Web interface
+
+```bash
+make serve-js
+```
+
+Then open [http://localhost:8080](http://localhost:8080). Alternatively,
+serve the built `js/dist/` directory with any static HTTP server. The
+interface is bilingual (English/Finnish), shows real-time entropy
+calculations, and uses the Web Crypto API for random number generation.
+
+For development with rebuild-on-change:
+
+```bash
+cd js
+bun run dev
+```
+
+## Browser extension
+
+A work-in-progress extension for Firefox (Manifest V2) and Chrome
+(Manifest V3). It generates passphrases from a toolbar popup, copies them to
+the clipboard or fills them into password fields, and has no runtime
+dependencies.
+
+**Build and package:**
+
+```bash
+make ext-package-firefox  # finpass-firefox.xpi
+make ext-package-chrome   # finpass-chrome.zip
+```
+
+**Load for development:**
+
+- **Firefox:** run `make ext-firefox`, then open `about:debugging` → "This
+  Firefox" → "Load Temporary Add-on" → select `extension/manifest.json`
+- **Chrome:** run `make ext-chrome`, then open `chrome://extensions` →
+  enable Developer mode → "Load unpacked" → select the `extension/` directory
+
+**Test:** `make ext-test`
+
+## Building from source
+
+Prerequisites: Make, plus per target:
+
+- **C/APE binary:** [Podman](https://podman.io) or Docker (or a local
+  `cosmocc` toolchain)
+- **Go CLI:** Go 1.22 or later
+- **Web interface / extension:** [Bun](https://bun.sh)
+
+| Target               | Command                              | Output                 |
+| -------------------- | ------------------------------------ | ---------------------- |
+| C/APE binary         | `make ape-container`                 | `finpass.ape`          |
+| Go CLI               | `make cli`                           | `finpass`              |
+| Web interface        | `make js`                            | `js/dist/`             |
+| Tests (Go)           | `make test`                          |                        |
+| Tests (C/APE)        | `make ape-test`                      |                        |
+| Clean                | `make clean`                         |                        |
+
+`make ape-container` builds the toolchain image from the `Dockerfile` and
+needs no local toolchain; set `CONTAINER_ENGINE=docker` to use Docker instead
+of Podman. With `cosmocc` (from [cosmo.zip](https://cosmo.zip) or the
+[Cosmopolitan releases](https://github.com/jart/cosmopolitan)) installed
+locally, you can build directly:
 
 ```bash
 make ape COSMOCC=/path/to/cosmocc
 ```
 
-Get `cosmocc` from [cosmo.zip](https://cosmo.zip) or the
-[Cosmopolitan releases](https://github.com/jart/cosmopolitan).
+Release engineering is documented in [RELEASING.md](RELEASING.md).
 
-**Run:**
+### Updating the wordlist
 
-```bash
-./finpass.ape -i -p strong
-```
+1. Replace `internal/words.txt` with the new wordlist (one word per line)
+2. Regenerate the compressed copy embedded into the binaries:
 
-**Test:**
+   ```bash
+   gzip -9 -c internal/words.txt > internal/words.txt.gz
+   ```
 
-```bash
-make ape-test
-```
+3. Rebuild (`make cli`, `make ape-container`)
 
-#### Flags
-
-The C CLI follows standard GNU `getopt_long` conventions (`--long-flag`
-double-dash, short flags combinable), which differs from the Go CLI's
-single-dash long flags shown above:
-
-| Flag                    | Description                               | Default         |
-| ----------------------- | ------------------------------------------ | --------------- |
-| `-w`, `--words N`        | Number of words to generate (1-6)          | `3`             |
-| `-n`, `--count N`        | Number of passphrases to generate          | `1`             |
-| `-m`, `--max-length N`   | Maximum length of each word component      | `0` (unlimited) |
-| `-d`, `--delimiter S`    | Delimiter between components               | `-`             |
-| `-i`, `--info`           | Show entropy and time-to-crack analysis    |                 |
-| `-p`, `--profile NAME`   | Attack profile for entropy calculation     | `standard`      |
-| `-s`, `--custom-speed N` | Custom attack speed (guesses per second)   |                 |
-| `-a`, `--all-profiles`   | Show entropy for all attack profiles       |                 |
-| `--list-profiles`        | List all available attack profiles         |                 |
-| `-V`, `--version`        | Print version and exit                     |                 |
-| `-h`, `--help`           | Show help message                          |                 |
-
-## Attack Profiles
-
-Available profiles for entropy calculation:
-
-- `legacy` - Weak legacy hashes (NTLM)
-- `weak` - Fast modern hashes (SHA256)
-- `standard` - Typical web app security (PBKDF2)
-- `strong` - Security-focused apps (bcrypt)
-- `paranoid` - Maximum security (scrypt)
-- `online` - Rate-limited online attacks
-
-The wordlist contains about 91k words and is a subset of the wordlist found at https://github.com/hugovk/everyfinnishword
-
-## Security Features
-
-### Password Strength Rating System
-
-This tool includes a comprehensive strength rating system that evaluates
-generated passphrases on a 5-level scale. The ratings are specifically
-**calibrated for randomly-generated passphrases** (not user-chosen passwords),
-which have fundamentally different security characteristics.
-
-**Strength Rating Thresholds:**
-
-| Rating          | Entropy Range | Security Level                           |
-| --------------- | ------------- | ---------------------------------------- |
-| Weak (1/5)      | < 35 bits     | Vulnerable to dedicated attacks          |
-| Fair (2/5)      | 35-49 bits    | Acceptable for low-value accounts        |
-| Good (3/5)      | 50-64 bits    | Strong for most purposes                 |
-| Strong (4/5)    | 65-84 bits    | Very strong, exceeds requirements        |
-| Excellent (5/5) | 85+ bits      | Extremely strong, nation-state resistant |
-
-**Example:** A passphrase like `istuvillaan.R8U.pergola.lastain` (35 characters, ~68 bits entropy) rates as **"strong" (4/5)**.
-
-### NIST SP 800-63B Compliance
-
-Finpass aims to generate passphrases that work with both legacy password
-requirements and [NIST SP 800-63B Digital Identity Guidelines](https://pages.nist.gov/800-63-4/sp800-63b.html):
-
-- **Single-factor authentication:** 15+ characters minimum
-- **Multi-factor authentication:** 8+ characters minimum
-- **No forced composition rules:** No artificial uppercase/symbol requirements
-- **Focus on length over complexity:** Longer passphrases are inherently stronger
-
-The default 3-word configuration generates passphrases averaging 35-45
-characters, well exceeding NIST minimums.
-
-### Entropy Calculation Methods
-
-The tool uses three complementary entropy calculation methods:
-
-1. **Brute-force Entropy**: Assumes attacker has no knowledge of generation method
-2. **Pattern-Aware Entropy**: Assumes attacker knows the pattern but not the wordlist
-3. **Wordlist Entropy** (worst-case): Assumes attacker has the exact wordlist and full algorithm knowledge
-
-Even in the worst-case scenario with complete algorithm knowledge, the
-positional entropy of the randomly-placed alphanumeric segment provides
-additional protection that cannot be bypassed.
-
-## Installation
-
-Pre-built releases for the CLI exist for Linux, macOS and Windows on
-amd64/arm64 platforms. See the releases for details.
-
-## Building from Source
-
-### Prerequisites
-
-- Go 1.22 or later
-- Make
-- [Bun](https://bun.sh) (for TypeScript web interface)
-- [Podman](https://podman.io) or Docker (for the C/APE container build)
-
-### Build Instructions
-
-The provided `Makefile` simplifies the build process.
-
-- **Build CLI:**
-
-  ```bash
-  make cli
-  ```
-
-  This will create the `finpass` binary in the root directory.
-
-- **Build TypeScript web interface:**
-
-  ```bash
-  make js
-  ```
-
-  This will build and bundle the TypeScript source files to the `js/dist/` directory.
-
-- **Build C (Cosmopolitan APE):**
-
-  ```bash
-  make ape-container
-  ```
-
-  This builds `finpass.ape` inside a container (Podman or Docker required, no
-  local toolchain needed) and copies it to the root directory. See
-  [C (Cosmopolitan APE)](#c-cosmopolitan-ape) above for details, including how
-  to build directly with a local `cosmocc`.
-
-- **Test:**
-
-  ```bash
-  make test
-  ```
-
-- **Clean build artifacts:**
-  ```bash
-  make clean
-  ```
-
-### Updating the Wordlist
-
-If you need to update the Finnish wordlist:
-
-1.  **Replace the source wordlist**:
-    The wordlist files are located in the `internal/` directory.
-
-    ```bash
-    # Replace internal/words.txt with your new wordlist (one word per line)
-    # Example: download from https://github.com/hugovk/everyfinnishword
-    ```
-
-2.  **Regenerate the compressed wordlist**:
-
-    ```bash
-    gzip -9 -c internal/words.txt > internal/words.txt.gz
-    ```
-
-3.  **Rebuild the binary**:
-    ```bash
-    make cli
-    ```
-
-**Important**: Both `internal/words.txt.gz` (compressed wordlist) and
-`internal/words.txt` (source) should be committed to the repository.
-
-The `words.txt.gz` file is embedded in the binary during build via
-`//go:embed`, while `words.txt` serves as the source for regenerating the
-compressed version when needed.
-
-## Frequently Asked Questions
-
-### How is the strength rating calculated?
-
-The strength rating is based on the entropy (randomness) of the generated
-passphrase, measured in bits. The tool calculates entropy using three different
-methods:
-
-1. **Brute-force entropy** - assumes the attacker tries all possible character
-   combinations
-2. **Pattern-aware entropy** - assumes the attacker knows the generation
-   pattern but not the wordlist
-3. **Wordlist entropy** - worst-case scenario where the attacker has the exact
-   wordlist
-
-The rating uses the wordlist entropy as the baseline, since it represents the
-minimum guaranteed security even if an attacker has complete knowledge of the
-system.
-
-### What do the different strength levels mean?
-
-The 5-level rating system is calibrated specifically for randomly-generated
-passphrases:
-
-- **Weak (1/5)**: Less than 35 bits - vulnerable to dedicated attacks
-- **Fair (2/5)**: 35-49 bits - acceptable for low-value accounts
-- **Good (3/5)**: 50-64 bits - strong for most purposes
-- **Strong (4/5)**: 65-84 bits - very strong, exceeds most requirements
-- **Excellent (5/5)**: 85+ bits - extremely strong, resistant to nation-state
-  attacks
-
-With proper password hashing (bcrypt, scrypt, or Argon2), passphrases rated
-"good" or higher are secure against practical offline attacks.
-
-### How can I see the entropy and strength rating?
-
-**Command-line interface:** Use the `-i` flag to show entropy analysis, or
-`-all-profiles` to see all attack profiles:
-
-```bash
-finpass -i
-```
-
-To see analysis for all attack profiles:
-
-```bash
-finpass -all-profiles
-```
-
-**Web interface:** The strength rating is always visible. Click "Show Details"
-to see comprehensive entropy calculations and time-to-crack estimates.
+Commit both `internal/words.txt` (source) and `internal/words.txt.gz`
+(embedded via `//go:embed`).

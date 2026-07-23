@@ -16,7 +16,8 @@ RUN echo "${COSMOCC_B3SUM}  cosmocc-${COSMOCC_VERSION}.zip" > cosmocc.zip.b3sum 
     && rm "cosmocc-${COSMOCC_VERSION}.zip" cosmocc.zip.b3sum
 
 WORKDIR /app
+ARG FINPASS_VERSION=devel
 COPY Makefile ./
 COPY c/ ./c/
 COPY internal/words.txt ./internal/
-RUN PATH=$PATH:/cosmocc/bin make ape
+RUN PATH=$PATH:/cosmocc/bin make ape APE_VERSION="${FINPASS_VERSION}"
